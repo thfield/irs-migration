@@ -2,8 +2,8 @@
 const fs = require('fs')
 const turf = require('turf')
 
-const pathIn = './data/geo/'
-const pathOut = './data/raw-geo/'
+const pathIn = '../data/geo/'
+const pathOut = '../data/geo/'
 
 ;[
   {

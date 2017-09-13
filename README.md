@@ -1,12 +1,19 @@
-https://www.irs.gov/statistics/soi-tax-stats-migration-data
+# irs-migration
+
+Visualizing taxpayer migration data from the IRS
+
+## data source
+https://www.irs.gov/statistics/soi-tax-stats-migration-data  
 https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
+
+## command line dependencies
+- node
+- npm
+- ogr2ogr
 
 
 ## to get all the data
-1. run `npm install`
-1. run `./download.sh` (just county data)
-  - or run `./download.sh all_data.txt` (for all state/county data)
-1. (optional) run `./download.sh data_documentation.txt`
-1. run `./geo.sh`
-1. run `./parse-county.sh`
-
+1. `npm install`
+1. `npm run get-data`
+1. `npm run atlas`
+1. `npm run munge`

@@ -7,11 +7,11 @@ cd data/raw
 # download file passed as 1st param
 file=${1:-"data_sources.txt"}
 
-for i in `cat ../../$file` ; do
+for i in `cat ../../munge/$file` ; do
  if [ -e `basename $i` ]; then
     echo "File exists: $i"
   else
-      echo "File does not exist: $i"
+      # echo "File does not exist: $i"
       curl -O $i
   fi
 done
