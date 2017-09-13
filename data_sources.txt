@@ -1,0 +1,9 @@
+https://www.irs.gov/pub/irs-soi/countyoutflow1415.csv
+https://www.irs.gov/pub/irs-soi/countyinflow1415.csv
+https://www.irs.gov/pub/irs-soi/countyoutflow1314.csv
+https://www.irs.gov/pub/irs-soi/countyinflow1314.csv
+https://www.irs.gov/pub/irs-soi/countyoutflow1213.csv
+https://www.irs.gov/pub/irs-soi/countyinflow1213.csv
+https://www.irs.gov/pub/irs-soi/countyoutflow1112.csv
+https://www.irs.gov/pub/irs-soi/countyinflow1112.csv
+https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt

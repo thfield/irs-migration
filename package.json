@@ -1,0 +1,17 @@
+{
+  "name": "irs-migration",
+  "version": "1.0.0",
+  "description": "https://www.irs.gov/statistics/soi-tax-stats-migration-data https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "csv-parse": "^1.2.1",
+    "turf": "^3.0.14",
+    "us-atlas": "^1.0.2"
+  }
+}
