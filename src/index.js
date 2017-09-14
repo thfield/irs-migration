@@ -6,7 +6,7 @@ import sf from '../data/06075data.json'
 
 const fipsCounty = '06075'
 let year = '1415'
-console.log(sf[year])
+
 let colorArray = ["#fff", "#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"]
 
 let minmaxIn = d3.extent(sf[year], function(d){
@@ -30,7 +30,7 @@ svg.append("g")
     .selectAll("path")
     .data(topojson.feature(us, us.objects.counties).features)
     .enter().append("path")
-      .attr("stroke", "#aaa")
+      .attr("stroke", "#fff")
       .attr("stroke-width", 0.5)
       .attr("fill", function(d){
         let num = getVal(d.id)
