@@ -15,5 +15,5 @@ https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
 ## to get all the data
 1. `npm install`
 1. `npm run get-data`
-<!-- 1. `npm run atlas` -->
+1. `npm run atlas`
 1. `npm run munge`

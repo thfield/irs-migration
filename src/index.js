@@ -1,5 +1,5 @@
-// import * as d3 from 'd3'
-// import * as topojson from 'topojson'
+import * as d3 from 'd3'
+import * as topojson from 'topojson'
 
 import us from '../data/geo/10m.json'
 import sf from '../data/06075data.json'

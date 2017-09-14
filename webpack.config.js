@@ -18,7 +18,7 @@ module.exports = {
       template: 'src/index.ejs',
       chunks: ['app']
     }),
-    new UglifyJSPlugin()
+    // new UglifyJSPlugin()
   ],
   devtool: 'inline-source-map',
   devServer: {
