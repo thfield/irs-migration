@@ -11,8 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "get-data": "./download.sh",
     "atlas": "cp node_modules/us-atlas/us/10m.json data/geo",
-    "geo": "munge/geo.sh",
-    "munge": "munge/geo.sh && munge/parse-county.sh && munge/geotopo.sh",
+    "munge": "munge/geo.sh && munge/parse-county.sh",
     "build": "webpack",
     "watch": "webpack --watch",
     "start": "webpack-dev-server --open"
@@ -21,16 +20,17 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@turf/turf": "^4.7.3",
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.0",
     "clean-webpack-plugin": "^0.1.16",
     "css-loader": "^0.28.6",
     "csv-loader": "^2.1.1",
+    "d3-geo-projection": "^2.3.1",
     "file-loader": "^0.11.2",
     "html-webpack-plugin": "^2.30.1",
     "style-loader": "^0.18.2",
-    "turf": "^3.0.14",
     "uglifyjs-webpack-plugin": "^0.4.6",
     "us-atlas": "^1.0.2",
     "webpack": "^3.5.5",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "d3": "^4.10.2",
+    "d3-queue": "^3.0.7",
     "topojson": "^3.0.2"
   }
 }

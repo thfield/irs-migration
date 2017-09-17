@@ -1,4 +1,4 @@
-const turf = require('turf-helpers')
+const turf = require('@turf/helpers')
 
 /**
  * choose features from a geoJSON featureCollection where feature.properties[idProp] == [id]
