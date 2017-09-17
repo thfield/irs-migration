@@ -11,12 +11,26 @@ const path = '../data'
 const years = ['1112', '1213', '1314', '1415']
 const fips = process.argv[2] || '06075'
 
+let fipsKey = new Map()
+d3.csvParseRows( fs.readFileSync(`${path}/raw/national_county.txt`, 'utf8'), function(row){
+  fipsKey.set(row[1].toString().concat(row[2]), {
+    state: row[0],
+    statefp: row[1],
+    countyfp: row[2],
+    name: row[3]
+  })
+  return null
+})
+
 // get unique fips
 let focalFips = new Set()
 ;['inflow','outflow'].forEach(function (direction) {
   years.forEach(function (year) {
     let file = `${path}/${fips}/${fips}${direction}${year}.csv`
     let data = d3.csvParse(fs.readFileSync(file, 'utf8'))
+    // want to save csv like:
+    // id,y1_statefips,y1_countyfips,y2_statefips,y2_countyfips,y2_state,y2_countyname,n1,n2,agi
+    // where id=statefips.concat(countyfips)
 
     data.forEach(function(county){
       focalFips.add(county.y1_statefips+county.y1_countyfips)
@@ -59,7 +73,13 @@ function findCentersOfMass(geojson){
 }
 
 function filterFeatures(feature){
-  feature.properties = {statefp:feature.properties.STATEFP, countyfp:feature.properties.COUNTYFP, name:feature.properties.NAME, geoid: feature.properties.GEOID}
+  feature.properties = {
+    statefp:feature.properties.STATEFP,
+    countyfp:feature.properties.COUNTYFP,
+    name:feature.properties.NAME,
+    state: fipsKey.get(`${feature.properties.STATEFP}${feature.properties.COUNTYFP}`).state,
+    geoid: feature.properties.GEOID
+  }
   return feature
 }
 
