@@ -25,3 +25,5 @@ https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
   - `npm run start`
 - map code is in *index.js*
 
+## TODO
+- separate build dev/dist webpack functionality

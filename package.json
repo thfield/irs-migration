@@ -39,6 +39,7 @@
   "dependencies": {
     "d3": "^4.10.2",
     "d3-queue": "^3.0.7",
+    "d3-svg-legend": "^2.24.1",
     "topojson": "^3.0.2"
   }
 }

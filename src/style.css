@@ -6,3 +6,8 @@
   stroke: #f00;
   stroke-width: 2px;
 }
+
+.legendCells {
+  fill: #000;
+  stroke: none;
+}

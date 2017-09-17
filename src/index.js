@@ -1,6 +1,7 @@
 import './style.css'
 import * as d3 from 'd3'
 import 'd3-queue'
+import * as d3_legend from 'd3-svg-legend'
 import * as topojson from 'topojson'
 
 const fipsCounty = '06075'
@@ -34,6 +35,19 @@ function draw(error, migration, us, counties){
   let svg = d3.select("#map svg")
   let path = d3.geoPath()
   let info = d3.select('#info')
+
+  /* *** draw the legend *** */
+  svg.append("g")
+    .attr("class", "legendQuant")
+    .attr("transform", "translate(830,300)");
+
+  var legend = d3_legend.legendColor()
+    .labelFormat(d3.format(",d"))
+    .title("")
+    .titleWidth(100)
+    .scale(color);
+  svg.select(".legendQuant")
+    .call(legend);
 
   /* *** draw the map *** */
   svg.append("g")
