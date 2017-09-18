@@ -7,9 +7,13 @@ https://www.irs.gov/statistics/soi-tax-stats-migration-data
 https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
 
 ## command line dependencies
-- node
-- npm
-- ogr2ogr
+- [node](https://nodejs.org/en/)
+- [npm](https://www.npmjs.com/)
+- [topojson](https://github.com/topojson/topojson)
+- [geoprojection](https://github.com/d3/d3-geo-projection)
+- [ndjson-cli](https://github.com/mbostock/ndjson-cli)
+- [shapefile](https://github.com/mbostock/shapefile)
+- [imagemagick](https://www.imagemagick.org/script/command-line-tools.php)
 
 
 ## to get all the data
@@ -28,7 +32,6 @@ https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
 
 ## TODO
 - separate build dev/dist webpack functionality
-- command line svg generation of map
 - better mouseover tooltip
 - connect centroids with lines
 - zoom map
@@ -39,3 +42,6 @@ https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
   - sankey/sunburst/tree? (county-> state-> sf)
 - allow user to choose different year
 
+### Done
+- command line svg generation of map
+  - see `munge/svg-munge.js` and `munge/svg-create.sh`
