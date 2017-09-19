@@ -34,6 +34,7 @@ https://www.census.gov/topics/population/migration/data/tables.html
 
 
 ## TODO
+- TODO in `download.sh` having to do with character encoding conversion
 - separate build dev/dist webpack functionality
 - better mouseover tooltip
 - connect centroids with lines

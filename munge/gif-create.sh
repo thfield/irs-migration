@@ -6,7 +6,8 @@ st=${1:-"06"} # california fips code
 co=${2:-"075"} # san francisco county fips code
 direction=${3:-"in"}
 
-years=("1112" "1213" "1314" "1415")
+
+years=("0405" "0506" "0607" "0708" "0809" "0910" "1011" "1112" "1213" "1314" "1415")
 path="../data/$st${co}"
 mkdir -p $path/gif
 for year in "${years[@]}"
@@ -28,6 +29,6 @@ do
   rm $output
 done
 
-convert -loop 0 -delay 100 $path/gif/$st${co}_1112_$direction.png $path/gif/$st${co}_1213_$direction.png $path/gif/$st${co}_1314_$direction.png $path/gif/$st${co}_1415_$direction.png  $path/$st${co}_$direction.gif
+convert -loop 0 -delay 100 $path/gif/$st${co}_0405_$direction.png $path/gif/$st${co}_0506_$direction.png $path/gif/$st${co}_0607_$direction.png $path/gif/$st${co}_0708_$direction.png $path/gif/$st${co}_0809_$direction.png $path/gif/$st${co}_0910_$direction.png $path/gif/$st${co}_1011_$direction.png $path/gif/$st${co}_1112_$direction.png $path/gif/$st${co}_1213_$direction.png $path/gif/$st${co}_1314_$direction.png $path/gif/$st${co}_1415_$direction.png  $path/$st${co}_$direction.gif
 
 # rm $path/gif/*

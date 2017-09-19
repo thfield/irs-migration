@@ -8,8 +8,10 @@ Object.assign(d3, require('d3-array'), require('d3-geo'), require('d3-geo-projec
 const selectFeature = require('./selectFeature')
 
 const path = '../data'
-const years = ['1112', '1213', '1314', '1415']
-const fips = process.argv[2].concat(process.argv[3]) || '06075'
+const years = ['0405', '0506', '0607', '0708', '0809', '0910', '1011', '1112', '1213', '1314', '1415']
+let st = process.argv[2] || '06'
+let co = process.argv[3] || '075'
+const fips = st.concat(co) || '06075'
 
 let fipsKey = new Map()
 d3.csvParseRows( fs.readFileSync(`${path}/raw/national_county.txt`, 'utf8'), function(row){

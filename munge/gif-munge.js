@@ -9,7 +9,7 @@ const direction = process.argv[4] || 'in'
 const statefips = (direction == 'in') ? 'y1_statefips' : 'y2_statefips'
 const countyfips = (direction == 'in') ? 'y1_countyfips' : 'y2_countyfips'
 
-const years = ['1112', '1213', '1314', '1415']
+const years = ['0405', '0506', '0607', '0708', '0809', '0910', '1011', '1112', '1213', '1314', '1415']
 
 let path = '../data'
 let shapesPath = `${path}/${fipsCounty}/${fipsCounty}shapes.topojson`
