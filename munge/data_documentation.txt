@@ -2,3 +2,5 @@ https://www.irs.gov/pub/irs-soi/1415inpublicmigdoc.pdf
 https://www.irs.gov/pub/irs-soi/1314inpublicmigdoc.pdf
 https://www.irs.gov/pub/irs-soi/1213inpublicmigdoc.pdf
 https://www.irs.gov/pub/irs-soi/1112inpublicmigdoc.pdf
+https://www.census.gov/content/dam/Census/topics/population/migration/guidance-for-data-users/acs-migration-tutorial/2011-2015%20Migration%20Flows%20Documentation.pdf
+https://www.census.gov/content/dam/Census/topics/population/migration/guidance-for-data-users/acs-migration-tutorial/2010-2014-Migration-Flows-Documentation.pdf

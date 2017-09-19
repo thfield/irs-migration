@@ -9,7 +9,7 @@ const selectFeature = require('./selectFeature')
 
 const path = '../data'
 const years = ['1112', '1213', '1314', '1415']
-const fips = process.argv[2] || '06075'
+const fips = process.argv[2].concat(process.argv[3]) || '06075'
 
 let fipsKey = new Map()
 d3.csvParseRows( fs.readFileSync(`${path}/raw/national_county.txt`, 'utf8'), function(row){

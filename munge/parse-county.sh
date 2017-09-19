@@ -18,4 +18,4 @@ do
 done
 
 cd munge
-node parse-county.js $st$co
+node parse-county.js $st $co

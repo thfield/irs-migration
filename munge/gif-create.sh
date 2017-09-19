@@ -1,17 +1,19 @@
 #!/bin/bash
 # geo2svg requires NDJSON as input
+# run gif-munge.js script before this
 
 st=${1:-"06"} # california fips code
 co=${2:-"075"} # san francisco county fips code
+direction=${3:-"in"}
 
 years=("1112" "1213" "1314" "1415")
 path="../data/$st${co}"
-mkdir -p $path/cmd
+mkdir -p $path/gif
 for year in "${years[@]}"
 do
-  filename=$st${co}_$year
-  input="$path/cmd/$filename.topojson"
-  output="$path/cmd/$filename.svg"
+  filename=$st${co}_${year}_$direction
+  input="$path/gif/$filename.topojson"
+  output="$path/gif/$filename.svg"
 
   (topo2geo counties=- < $input \
     | ndjson-split 'd.features'; \
@@ -22,9 +24,10 @@ do
 
   convert -fill black -pointsize 48 label:"${year}"  miff:- |\
     composite -gravity south -geometry +0+3 \
-              -   ${output}   $path/cmd/$filename.png
+              -   ${output}   $path/gif/$filename.png
   rm $output
 done
 
-convert -loop 0 -delay 100 $path/cmd/$st${co}_1112.png $path/cmd/$st${co}_1213.png $path/cmd/$st${co}_1314.png $path/cmd/$st${co}_1415.png  $path/$st${co}.gif
+convert -loop 0 -delay 100 $path/gif/$st${co}_1112_$direction.png $path/gif/$st${co}_1213_$direction.png $path/gif/$st${co}_1314_$direction.png $path/gif/$st${co}_1415_$direction.png  $path/$st${co}_$direction.gif
 
+# rm $path/gif/*
