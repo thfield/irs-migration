@@ -8,14 +8,16 @@ Object.assign(d3, require('d3-array'), require('d3-geo'), require('d3-geo-projec
 const selectFeature = require('./selectFeature')
 
 const path = '../data'
-const years = ['0405', '0506', '0607', '0708', '0809', '0910', '1011', '1112', '1213', '1314', '1415']
+const years = ['1415','1314','1213','1112','1011','0910','0809','0708','0607','0506','0405']
 let st = process.argv[2] || '06'
 let co = process.argv[3] || '075'
 const fips = st.concat(co) || '06075'
 
+// create map of fips to county name with key "statefips + countyfips"
 let fipsKey = new Map()
 d3.csvParseRows( fs.readFileSync(`${path}/raw/national_county.txt`, 'utf8'), function(row){
-  fipsKey.set(row[1].toString().concat(row[2]), {
+  let key = row[1].toString().concat(row[2])
+  fipsKey.set(key, {
     state: row[0],
     statefp: row[1],
     countyfp: row[2],
@@ -24,26 +26,42 @@ d3.csvParseRows( fs.readFileSync(`${path}/raw/national_county.txt`, 'utf8'), fun
   return null
 })
 
-// get unique fips
+// create file for combined data
+let combinedPath = `${path}/${fips}/${fips}combined.csv`
+if (fs.existsSync(combinedPath)){
+    fs.unlinkSync(combinedPath)
+}
+let combinedCsv = fs.createWriteStream(combinedPath)
+let headers = 'year,id,y1_statefips,y1_countyfips,y2_statefips,y2_countyfips,n1,n2,agi\n'
+combinedCsv.write( headers )
+
+// create Set for unique fips
 let focalFips = new Set()
+
 ;['inflow','outflow'].forEach(function (direction) {
   years.forEach(function (year) {
     let file = `${path}/${fips}/${fips}${direction}${year}.csv`
     let data = d3.csvParse(fs.readFileSync(file, 'utf8'))
-    // want to save csv like:
-    // id,y1_statefips,y1_countyfips,y2_statefips,y2_countyfips,y2_state,y2_countyname,n1,n2,agi
-    // where id=statefips.concat(countyfips)
 
     data.forEach(function(county){
       focalFips.add(county.y1_statefips+county.y1_countyfips)
       focalFips.add(county.y2_statefips+county.y2_countyfips)
+
+      let id = county.y2_statefips.concat(county.y2_countyfips)
+      let convertedData = `${year},${id},${county.y1_statefips},${county.y1_countyfips},${county.y2_statefips},${county.y2_countyfips},${county.n1},${county.n2},${county.agi}\n`
+      combinedCsv.write(convertedData)
     })
   })
 })
+// change to Array because selectFeature() expects an array
 focalFips = Array.from(focalFips)
 
-// select counties of focus
+// close fileWriteStream
+combinedCsv.end()
+
+// get geoJSON of all counties in US
 let countyGeojson = JSON.parse(fs.readFileSync(`${path}/geo/counties.geojson`, 'utf8'))
+// select counties of focus
 let shapes = selectFeature(focalFips, 'GEOID', countyGeojson)
 
 // find center of counties
@@ -76,9 +94,9 @@ function findCentersOfMass(geojson){
 
 function filterFeatures(feature){
   feature.properties = {
-    statefp:feature.properties.STATEFP,
-    countyfp:feature.properties.COUNTYFP,
-    name:feature.properties.NAME,
+    statefp: feature.properties.STATEFP,
+    countyfp: feature.properties.COUNTYFP,
+    name: feature.properties.NAME,
     state: fipsKey.get(`${feature.properties.STATEFP}${feature.properties.COUNTYFP}`).state,
     geoid: feature.properties.GEOID
   }

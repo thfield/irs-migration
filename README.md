@@ -27,15 +27,25 @@ https://www.census.gov/topics/population/migration/data/tables.html
 
 
 ## to develop
-- get the data ^
+- get all the data ^
 - use webpack:
   - `npm run start`
 - map code is in *index.js*
 
 
+## to add support for a particular county
+Say, Manhattan (FIPS code 36 061):
+- get all the data ^^
+- `irs-migration$ ./munge/parse-county.sh 36 061`
+- files are now in `data/36061`:
+  - inflow/outflow csvs
+  - topojson of destination counties
+
+
 ## TODO
 - TODO in `download.sh` having to do with character encoding conversion
 - separate build dev/dist webpack functionality
+- change color scale to some sort of threshold scale (automatic)
 - better mouseover tooltip
 - connect centroids with lines
 - zoom map
@@ -45,6 +55,7 @@ https://www.census.gov/topics/population/migration/data/tables.html
 - bumps chart of top (10? 20?) counties year-to-year
 - barchart of migration by state
   - sankey/sunburst/tree? (county-> state-> sf)
+- select county to compare over time
 - allow user to choose different year
 - combine gif-munge and gif-create into single node script?
 
@@ -98,3 +109,10 @@ To make gif of migration into New York County, NY (FIPS code 36061):
 1. `irs-migration$ cd munge`
 1. `munge$ node gif-munge.js 36 061 in`
 1. `munge$ ./gif-create.sh 36 061 in`
+
+To make legend for gifs
+1. edit html file `munge/legend.html`
+1. change variable `vals` to the contents of `legendValsin.json`/`legendValsin.json`
+1. choose desired colorArray
+1. open `munge/legend.html` in web browser
+1. screenshot
