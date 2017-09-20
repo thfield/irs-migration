@@ -29,6 +29,7 @@ d3.csvParseRows( fs.readFileSync(`${path}/raw/national_county.txt`, 'utf8'), fun
 // create file for combined data
 let combinedPath = `${path}/${fips}/${fips}combined.csv`
 if (fs.existsSync(combinedPath)){
+  // delete file if exists so it doesn't keep being appended to
     fs.unlinkSync(combinedPath)
 }
 let combinedCsv = fs.createWriteStream(combinedPath)
