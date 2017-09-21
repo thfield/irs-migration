@@ -8,6 +8,7 @@
   },
   "main": "index.js",
   "scripts": {
+    "foo": "munge/geo.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
     "get-data": "./download.sh",
     "atlas": "cp node_modules/us-atlas/us/10m.json data/geo",

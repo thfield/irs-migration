@@ -48,7 +48,11 @@ let focalFips = new Set()
       focalFips.add(county.y1_statefips+county.y1_countyfips)
       focalFips.add(county.y2_statefips+county.y2_countyfips)
 
-      let id = county.y2_statefips.concat(county.y2_countyfips)
+      let id = (county.y1_statefips === st && county.y1_countyfips === co) ?
+                  county.y2_statefips.concat(county.y2_countyfips)
+                :
+                  county.y1_statefips.concat(county.y1_countyfips)
+
       let convertedData = `${year},${id},${county.y1_statefips},${county.y1_countyfips},${county.y2_statefips},${county.y2_countyfips},${county.n1},${county.n2},${county.agi}\n`
       combinedCsv.write(convertedData)
     })
@@ -59,6 +63,7 @@ focalFips = Array.from(focalFips)
 
 // close fileWriteStream
 combinedCsv.end()
+console.log('The file was saved as', combinedPath);
 
 // get geoJSON of all counties in US
 let countyGeojson = JSON.parse(fs.readFileSync(`${path}/geo/counties.geojson`, 'utf8'))

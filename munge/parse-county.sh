@@ -2,7 +2,7 @@
 st=${1:-"06"} # california fips code
 co=${2:-"075"} # san francisco county fips code
 
-#
+# TODO: rewrite grep strings to only require the countyinflowYYYY.csv files
 io=("in" "out")
 path="./data"
 mkdir -p $path/$st$co
