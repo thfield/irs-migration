@@ -14,11 +14,17 @@
 			<p>The data contains the aggregate number of returns that are filed within a particular county one year and a particular county the next. In this way it is possible to track the migration of taxpayers between specific counties.  In this project, I concentrate on migration patterns into San Francisco.</p>
 			<p>This map currently shows the counties where taxpayers lived in 2014 before moving to San Francisco in 2015, shaded by the number of taxpayers.  The more people, the darker the county is shaded.</p>
 		</div>
+		<select name="year" id="year"></select>
+		<select name="direction" id="direction">
+			<option value="in" selected>Immigration</option>
+			<option value="out">Emigration</option>
+		</select>
+		<div id="rank"></div>
 		<div id="map">
 			<svg width="960" height="600" fill="none" stroke="#000" stroke-linejoin="round" stroke-linecap="round"></svg>
 		</div>
 		<div id="info"></div>
-		<div id="rank"></div>
+		<div id="annual"></div>
 	</div>
 
 
