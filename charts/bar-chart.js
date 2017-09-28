@@ -24,6 +24,8 @@ export default function barChart() {
     selection.each(function(data) {
       // expecting data to look like {x:string, y:number, color:string}
 
+      let t = d3.transition().duration(500).ease(d3.easePoly)
+
       // Update the x-scale.
       x   .domain( data.map(d => d.x) )
           .range([0, width - margin.left - margin.right])
@@ -33,6 +35,7 @@ export default function barChart() {
           .range([height - margin.top - margin.bottom, 0])
 
       // Select the svg element, if it exists.
+      // TODO change so DOM element has to be svg, do if/then check on adding gEnter.appends
       var svg = d3.select(this).selectAll("svg").data([data]);
 
       // Otherwise, create the skeletal chart.
@@ -40,21 +43,16 @@ export default function barChart() {
           .attr("width", width)
           .attr("height", height)
         .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
         .merge(svg)
-
 
       gEnter.append("g").attr("class", "x axis");
       gEnter.append("g").attr("class", "y axis");
       gEnter.append("g").attr("class", "bars");
 
-      // Update the inner dimensions.
-      gEnter
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
       // Update the bars
-      let t = d3.transition().duration(1000).ease(d3.easePoly)
-
       var bars = gEnter.select(".bars").selectAll(".bar").data(data);
+
       bars.enter().append("rect").attr('class', 'bar')
       .merge(bars)
           .attr("x", function(d) { return x(d.x) })
@@ -65,15 +63,6 @@ export default function barChart() {
         .transition(t)
           .attr("y", function(d) { return y(d.y) })
           .attr("height", function(d) { return height - margin.top - margin.bottom - y(d.y) })
-
-
-      bars.exit().transition(t)
-          .attr("y", function(d) { debugger;return y(0) })
-          .attr("height", function(d) { return height - margin.top - margin.bottom - y(0) })
-          .remove()
-
-
-
 
       // Update the x-axis.
       gEnter.select(".x.axis")

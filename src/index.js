@@ -194,6 +194,8 @@ function initialDraw(error, data, us, counties, fips){
             let num = getVal(d.properties.geoid,year,direction)
             return color(num)
           })
+
+    mapSvg.select(".legendQuant").remove() // update doesn't seem to call a color change on the legend
     legend.scale(color)
     mapSvg.select(".legendQuant")
       .call(legend);
@@ -215,7 +217,12 @@ function initialDraw(error, data, us, counties, fips){
         let num = getVal(d.properties.geoid,year,direction)
         return color(num)
       })
+    /* *** draw the legend *** */
+    mapSvg.append("g")
+      .attr("class", "legendQuant")
+      .attr("transform", "translate(830,300)");
 
+    mapSvg.select(".legendQuant").remove() // update doesn't seem to call a color change on the legend
     legend.scale(color)
     mapSvg.select(".legendQuant")
       .call(legend)
