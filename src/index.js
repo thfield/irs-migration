@@ -7,11 +7,14 @@ import barChart from '../charts/bar-chart.js'
 
 let fipsCounty = '06075'
 let year = '1415'
+let years = ['0405', '0506', '0607', '0708', '0809', '0910', '1011', '1112', '1213', '1314', '1415']
 let direction = document.querySelector('#direction').value
 
 let colorArray = {
-in: ["#fff","#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"],
-out: ["#fff",'#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#a50f15','#67000d']
+// in: ["#fff","#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"],
+// out: ["#fff",'#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#a50f15','#67000d']
+  in: ["#fff","#00441b"],
+  out: ["#fff",'#67000d']
 }
 let path = '../data'
 let dataPath = `${path}/${fipsCounty}/${fipsCounty}combined.csv`
@@ -33,6 +36,7 @@ function initialDraw(error, data, us, counties, fips){
   let fipsMap = new Map()
   fips.forEach(function(row){
     fipsMap.set(row.id, row)
+    fipsMap.set(row.statefp, row.state)
   })
 
   let nestedData = d3.nest()
@@ -50,18 +54,16 @@ function initialDraw(error, data, us, counties, fips){
     .text(fullYear)
 
   let stateTotalByYear = d3.nest()
-      .key(function(d) { return d.year; })
-      .key(inOrOut).sortValues(function(a,b){
-        return Number.parseInt(b.n1)-Number.parseInt(a.n1)
-      })
+      .key(inOrOut)
       .key(function(d) {
-        let dir = inOrOut(d)
-        return d[targetFips(dir)[0]]
+        let direc = inOrOut(d)
+        return d[targetFips(direc)[0]]
       }).sortKeys(d3.ascending)
+      .key(function(d) { return d.year; })
       .rollup(function(leaves) {
         return leaves.reduce(function (acc,cur){
           // don't count non-migrators (where year1residence === year2residence)
-          if( cur.y1_statefips > 58 || cur.y2_statefips > 58) { return acc }
+          if( cur.y1_statefips > 58 || cur.y2_statefips > 58 ) { return acc }
           if( cur.y1_statefips === cur.y2_statefips && cur.y1_countyfips === cur.y2_countyfips ) { return acc }
 
           let n1 = cur.n1 === -1 ? acc.n1 : acc.n1+Number.parseInt(cur.n1)
@@ -84,9 +86,26 @@ function initialDraw(error, data, us, counties, fips){
     return ['y1_statefips', 'y1_countyfips']
   }
 
-  let color = d3.scaleQuantile()
+  let lineChartData = Object.keys(stateTotalByYear[direction]).map(function(state){
+    let statename = fipsMap.get(state)
+    let data = years.map(function(yr){
+      let val = stateTotalByYear[direction][state][yr] ?
+          stateTotalByYear[direction][state][yr].n1
+        :
+          0
+      return {x: yr, y: val}
+    })
+    return {
+      state: statename,
+      data: data
+    }
+  })
+
+  let n1Vals = nestedData[year][direction].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : undefined)
+
+  let color = d3.scaleLog()
     .range(colorArray[direction])
-    .domain( nestedData[year][direction].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : 0) )
+    .domain( d3.extent(n1Vals) )
 
   let mapSvg = d3.select("#map svg")
   let path = d3.geoPath()
@@ -101,6 +120,7 @@ function initialDraw(error, data, us, counties, fips){
     .labelFormat(d3.format(",d"))
     .title("")
     .titleWidth(100)
+    .cells(7)
     .scale(color);
   mapSvg.select(".legendQuant")
     .call(legend);
@@ -184,9 +204,10 @@ function initialDraw(error, data, us, counties, fips){
   document.querySelector('#year').onchange = function(e){
     year = e.target.value
     direction = document.querySelector('#direction').value
+    n1Vals = nestedData[year][direction].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : undefined)
 
     color
-        .domain( nestedData[year][direction].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : 0) )
+        .domain( d3.extent(n1Vals) )
         .range(colorArray[direction])
 
     countymapel.selectAll("path")
@@ -207,9 +228,10 @@ function initialDraw(error, data, us, counties, fips){
   document.querySelector('#direction').onchange = function(e){
     year = document.querySelector('#year').value
     direction = e.target.value
+    n1Vals = nestedData[year][direction].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : undefined)
 
     color
-        .domain( nestedData[year][direction].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : 0) )
+        .domain( d3.extent(n1Vals) )
         .range(colorArray[direction])
 
     countymapel.selectAll("path")
