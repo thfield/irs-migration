@@ -30,7 +30,7 @@ d3.queue()
   .defer(d3.json, statesPath)
   .defer(d3.json, shapesPath)
   .defer(d3.csv, fipsPath, function(row){
-    return Object.assign(row, {id: row.statefp.concat(row.countyfp)})
+    return object.assign(row, {id: row.statefp.concat(row.countyfp)})
   })
   .await(initialDraw)
 
@@ -146,7 +146,7 @@ function initialDraw(error, data, us, counties, fips){
 
 
   /**** populate year selector dropdown ****/
-  d3.select('#year').selectAll("option").data(Object.keys(nestedData).sort())
+  d3.select('#year').selectAll("option").data(object.keys(nestedData).sort())
     .enter().append('option')
     .attr('value', function(d){ return d })
     .attr('selected', function(d){ return d === '1415'?true:false })
@@ -193,6 +193,13 @@ function initialDraw(error, data, us, counties, fips){
       .attr("stroke-width", 0.5)
       .attr("d", path(topojson.mesh(us, us.objects.states)))
 
+  /** @function getVal
+   * @param {string} geoid - id = `${statefips}${countyfips}`
+   * @param {string} year - one of ['0405', ..., '1415']
+   * @param {string} direction - "in"||"out"
+   * @returns {?number}
+   * @description Returns either the value for the record with id=geoid or null
+   */
   function getVal(geoid,year,direction) {
     let val = nestedData[year][direction].find(el=>el.id === geoid)
     return val === undefined ? null : val.n1
@@ -210,20 +217,20 @@ function initialDraw(error, data, us, counties, fips){
 
 
   /**** start draw the barchart ****/
-  let topTenData = dataTopNCounties(nestedData[year][direction])
-  let topTenElement = dimple.newSvg("#rank", 700, 400);
-  var topTenChart = new dimple.chart(topTenElement, topTenData)
-  topTenChart.setMargins(30, 30, 30, 80)
-  topTenChart.addCategoryAxis("x", "name");
-  topTenChart.addMeasureAxis("y", "value");
-  topTenChart.addSeries(null, dimple.plot.bar);
-  topTenChart.draw();
+  let topCountyData = dataTopNCounties(nestedData[year][direction], 15)
+  let topCountyElement = dimple.newSvg("#rank", 960, 400);
+  var topCountyChart = new dimple.chart(topCountyElement, topCountyData)
+  topCountyChart.setMargins(30, 30, 30, 80)
+  topCountyChart.addCategoryAxis("x", "name");
+  topCountyChart.addMeasureAxis("y", "value");
+  topCountyChart.addSeries(null, dimple.plot.bar);
+  topCountyChart.draw();
   /**** end draw the barchart ****/
 
 
   /**** start draw the linechart ****/
   let annualData = dataAnnualStatesForDimple(stateTotalByYear[direction], fipsMap)
-  let annualElement = dimple.newSvg("#annual", 700, 400);
+  let annualElement = dimple.newSvg("#annual", 960, 400);
   var annualChart = new dimple.chart(annualElement, annualData)
   annualChart.setMargins(30, 30, 30, 40)
   annualChart.addCategoryAxis("x", "year")
@@ -296,11 +303,10 @@ function initialDraw(error, data, us, counties, fips){
           data munge functions
   *******************************************************************************/
 
-  /**
-   * function dataTopNCounties
-   * @param { Object[] } data - array of records sorted descending to return "top"
-   * @param { Integer } n - first n records to return
-   * @returns { Object[] }
+  /** @function dataTopNCounties
+   * @param { object[] } data - array of records sorted descending to return "top"
+   * @param { number } [n=10] - first n records to return
+   * @returns { object[] }
    */
   function dataTopNCounties(data, n=10){
     let topN = []
@@ -322,14 +328,13 @@ function initialDraw(error, data, us, counties, fips){
     return topN
   }
 
-  /**
-   * function dataAnnualStatesForDimple
-   * returns data in form for use in dimple line chart
-   * @param { Object[] } data - stateTotalByYear[direction]
-   * @returns { Object[] } - example: {fips:"10", name:"DE", year:"2004-2005", value:15}
+  /** @function dataAnnualStatesForDimple
+   * @param { object[] } data - stateTotalByYear[direction]
+   * @returns { object[] } - example: {fips:"10", name:"DE", year:"2004-2005", value:15}
+   * @description returns data in form for use in dimple line chart
    */
   function dataAnnualStatesForDimple(data){
-    return Object.keys(data).map(function(state){
+    return object.keys(data).map(function(state){
       if (state > 57){ return }
       let statename = fipsMap.get(state)
       let res = years.map(function(yr){
@@ -349,14 +354,13 @@ function initialDraw(error, data, us, counties, fips){
     }, []);
   }
 
-  /**
-   * function dataAnnualTopNStates
-   * @param { Object } data - stateTotal.in || stateTotal.out
-   * @param { Integer } n - number of data to return
-   * @returns { Object[] } { fips,name,value }
+  /** @function dataAnnualTopNStates
+   * @param { object } data - stateTotal.in || stateTotal.out
+   * @param { number } [n=10] - number of data to return
+   * @returns { object[] } { fips,name,value }
    */
   function dataAnnualTopNStates(data, n=10) {
-    return Object.keys(data).map(function(state){
+    return object.keys(data).map(function(state){
       if (state > 57){ return }
       let statename = fipsMap.get(state)
       return {fips: state, name: statename, value: data[state].n1}
@@ -376,24 +380,22 @@ function initialDraw(error, data, us, counties, fips){
         data munge helper functions
 *******************************************************************************/
 
-/**
- * function inOrOut
- * @param { Object } d - d3.csvParse'd row of data from `000000combined.csv` file
- * @returns { String } 'in' or 'out',
- *   meaning 'immigration into' or 'emigration out of' the county of interest
+/** @function inOrOut
+ * @param { object } d - d3.csvParse'd row of data from `000000combined.csv` file
+ * @returns { string } 'in' or 'out', meaning 'immigration into' or
+ * 'emigration out of' the county of interest
  */
 function inOrOut(d) {
   return d.id === `${d.y1_statefips}${d.y1_countyfips}` ? 'in' : 'out'
 }
 
-/**
- * function targetFips
- * @param { String } direction - "in" or "out"
- * @returns { String[] } - property values for accessing d3.csvParsed data object
- *   return[0] is state fips property name
- *   return[1] is county fips property name
- *   when direction == 'in', we are interested in the y1 data
- *   when direction == 'out', we are intertest in the y2 data
+/** @function targetFips
+ * @param { string } direction - "in" or "out"
+ * @returns { string[] } - property values for accessing d3.csvParsed data object
+ * return[0] is state fips property name
+ * return[1] is county fips property name
+ * when direction == 'in', we are interested in the y1 data
+ * when direction == 'out', we are intertest in the y2 data
  */
 function targetFips(direction){
   if (direction === 'out'){
@@ -402,11 +404,10 @@ function targetFips(direction){
   return ['y1_statefips', 'y1_countyfips']
 }
 
-/**
- * function fullYear
- * formats 2digit/2years string into 4digit/2years with hyphen
- * @param { String } d - ex: "0405"
- * @returns { String } - ex: "2004-2005"
+/** @function fullYear
+ * @param { string } d - ex: "0405"
+ * @returns { string } - ex: "2004-2005"
+ * @description formats 2digit/2years string into 4digit/2years with hyphen
  */
 function fullYear(d) {
   let res = /(\d{2})(\d{2})/.exec(d)
