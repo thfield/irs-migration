@@ -49,56 +49,25 @@ fips.forEach(function (row) {
 *******************************************************************************/
 
 /**
- * countyData nests data from d3.csvParse(00000combined.csv) by:
+ * nestedCountyData nests data from d3.csvParse(00000combined.csv) by:
  *   -direction: ['in', 'out']
  *     -year: ['0405', ..., '1415']
  *        -array of
  *          -data: {agi,id,n1,n2,y1_countyfips,y1_statefips,y2_countyfips,y2_statefips,year}
  */
-let countyData = d3.nest()
+let nestedCountyData = d3.nest()
     .key(inOrOut)
     .key(function (d) { return d.year })
     .entries(data)
-// write('foo/countyData.json', countyData)
-
-// /**
-//  * stateTotalByYear nests data from d3.csvParse(00000combined.csv) by:
-//  *    -direction: ['in','out']
-//  *      -statefips: ['01', ..., '58']
-//  *        -year: ['0405', ..., '1415']
-//  *          -data: {n1,n2,agi}
-//  */
-// let stateTotalByYear = d3.nest()
-//     .key(inOrOut)
-//     .key(function (d) {
-//       let direc = inOrOut(d)
-//       return d[targetFips(direc)[0]]
-//     })
-//     .key(function (d) { return d.year })
-//     .rollup(function (leaves) {
-//       return leaves.reduce(function (acc, cur) {
-//         // don't count 'states' added by irs aggregation
-//         if (cur.y1_statefips > 58 || cur.y2_statefips > 58) { return acc }
-//         // don't count non-migrators (where year1residence === year2residence)
-//         if (cur.y1_statefips === cur.y2_statefips && cur.y1_countyfips === cur.y2_countyfips) { return acc }
-//
-//         let n1 = cur.n1 === -1 ? acc.n1 : acc.n1 + Number.parseInt(cur.n1)
-//         let n2 = cur.n2 === -1 ? acc.n2 : acc.n2 + Number.parseInt(cur.n2)
-//         let agi = cur.agi === -1 ? acc.agi : acc.agi + Number.parseInt(cur.agi)
-//
-//         return {n1: n1, n2: n2, agi: agi}
-//       }, {n1: 0, n2: 0, agi: 0})
-//     })
-//     .entries(data)
 
 /**
- * stateTotal nests data from d3.csvParse(00000combined.csv) by:
+ * nestedStateData nests data from d3.csvParse(00000combined.csv) by:
  *    -direction: ['in','out']
  *      -year: ['0405', ..., '1415']
  *        -statefips: ['01', ..., '58']
  *          -data: {n1,n2,agi}
  */
-let stateTotal = d3.nest()
+let nestedStateData = d3.nest()
     .key(inOrOut)
     .key(function (d) { return d.year })
     .key(function (d) {
@@ -121,40 +90,90 @@ let stateTotal = d3.nest()
     })
     .entries(data)
 
+/**
+ * nestedStateDataByYear nests data from d3.csvParse(00000combined.csv) by:
+ *    -direction: ['in','out']
+ *      -statefips: ['01', ..., '58']
+ *        -year: ['0405', ..., '1415']
+ *          -data: {n1,n2,agi}
+ */
+let nestedStateDataByYear = d3.nest()
+    .key(inOrOut)
+    .key(function (d) {
+      let direc = inOrOut(d)
+      return d[targetFips(direc)[0]]
+    })
+    .key(function (d) { return d.year })
+    .rollup(function (leaves) {
+      return leaves.reduce(function (acc, cur) {
+        // don't count 'states' added by irs aggregation
+        if (cur.y1_statefips > 58 || cur.y2_statefips > 58) { return acc }
+        // don't count non-migrators (where year1residence === year2residence)
+        if (cur.y1_statefips === cur.y2_statefips && cur.y1_countyfips === cur.y2_countyfips) { return acc }
+
+        let n1 = cur.n1 === -1 ? acc.n1 : acc.n1 + Number.parseInt(cur.n1)
+        let n2 = cur.n2 === -1 ? acc.n2 : acc.n2 + Number.parseInt(cur.n2)
+        let agi = cur.agi === -1 ? acc.agi : acc.agi + Number.parseInt(cur.agi)
+
+        return {n1: n1, n2: n2, agi: agi}
+      }, {n1: 0, n2: 0, agi: 0})
+    })
+    .entries(data)
+
 /*******************************************************************************
         prep data for charts
 *******************************************************************************/
 
-let topN1Counties = dataTopNCounties(countyData, 'n1', 15)
-let topN2Counties = dataTopNCounties(countyData, 'n2', 15)
-let topAgiCounties = dataTopNCounties(countyData, 'agi', 15)
-let topMeanAgiCounties = dataTopNCounties(countyData, 'meanAgi', 15, function (d) {
+let topN1Counties = dataTopNCounties(nestedCountyData, 'n1', 15)
+let topN2Counties = dataTopNCounties(nestedCountyData, 'n2', 15)
+let topAgiCounties = dataTopNCounties(nestedCountyData, 'agi', 15)
+let topMeanAgiCounties = dataTopNCounties(nestedCountyData, 'meanAgi', 15, function (d) {
   d.meanAgi = +d.agi / +d.n1
   return d
 })
 
-let topN1States = {}
-stateTotal.forEach(function (direc) {
-  dataTopNStates([direction])
+let topN1States = dataTopNStates(nestedStateData, 'n1', 15)
+let topN2States = dataTopNStates(nestedStateData, 'n2', 15)
+let topAgiStates = dataTopNStates(nestedStateData, 'agi', 15)
+let topMeanAgiStates = dataTopNStates(nestedStateData, 'meanAgi', 15, function (d) {
+  d.meanAgi = +d.agi / +d.n1
+  return d
 })
 
-write('topStatesAlltime.json', topStatesAlltime)
+let annualStatesForDimple = {}
+nestedStateDataByYear.forEach(function (direc) {
+  annualStatesForDimple[direc.key] = dataAnnualStatesForDimple(direc.values)
+})
 
-// let annualStatesForDimple = {}
-// stateTotalByYear.forEach(function (direc) {
-//   annualStatesForDimple[direc.key] = dataAnnualStatesForDimple(direc.values)
-// })
-//
+let output = {
+  counties: {
+    n1: topN1Counties,
+    n2: topN2Counties,
+    agi: topAgiCounties,
+    meanAgi: topMeanAgiCounties
+  },
+  states: {
+    n1: topN1States,
+    n2: topN2States,
+    agi: topAgiStates,
+    meanAgi: topMeanAgiStates
+  },
+  charts: {
+    linechart: annualStatesForDimple
+  }
+}
+write('../data/chartData.json', output)
 
 /*******************************************************************************
         data munge functions
 *******************************************************************************/
 
 /** @function dataTopNCounties
- * @param { object[] } data - nested data: countyData
+ * @param { object[] } data - nested data: nestedCountyData
  * @param { string } [prop] - property to sort by
  * @param { number } [n=10] - first n records to return
- * @param { function } [addProp] - function for adding additional property
+ * @param { function } [addProp] - function for adding additional property,
+ * takes as param {foo}, expect return {foo} with additional property prop
  * implemented with Array.map(addProp) on [year].values
  * @returns { object[] }
  */
@@ -178,12 +197,16 @@ function dataTopNCounties (data, prop, n = 10, addProp) {
         let cond2 = yr.values[i][targetFips(direc)[0]] < 58
         if (cond1 && cond2) {
           let fp = fipsMap.get(yr.values[i].id)
-          let res = {name: `${fp.name}, ${fp.state}`}
+          let res = {
+            name: `${fp.name}, ${fp.state}`,
+            id: yr.values[i].id,
+            n1: yr.values[i].n1,
+            n2: yr.values[i].n2,
+            agi: yr.values[i].agi
+          }
           if (prop) {
-            res.id = yr.values[i].id
             res.value = +yr.values[i][prop]
-          } else {
-            res = Object.assign(res, yr.values[i])
+            delete res[prop]
           }
           response[direc.key][yr.key].push(res)
         }
@@ -194,48 +217,63 @@ function dataTopNCounties (data, prop, n = 10, addProp) {
   return response
 }
 
-// /** @function dataAnnualStatesForDimple
-//  * @param { object[] } data - stateTotalByYear[direction].values
-//  * @returns { object[] } - example: {fips:"10", name:"DE", year:"2004-2005", value:15}
-//  * @description returns data in form for use in dimple line chart
-//  */
-// function dataAnnualStatesForDimple (data) {
-//   return data.map(function (state) {
-//     if (state.key > 57) { return }
-//     let statename = fipsMap.get(state.key)
-//     let res = years.map(function (yr) {
-//       let v = state.values.find(function (y) { return y.key === yr })
-//       let value = v === undefined ? 0 : v.value.n1
-//       return {fips: state.key, name: statename, year: fullYear(yr), value: value}
-//     })
-//     return res
-//   })
-//   // remove (state > 57: undefined) placeholders
-//   .filter(function (el) { return el !== undefined })
-//   // flatten array of arrays: [[1],[2],[3]] -> [1,2,3]
-//   .reduce(function (a, b) {
-//     return a.concat(b)
-//   }, [])
-// }
-//
 /** @function dataTopNStates
- * @param { object } data - stateTotal.in || stateTotal.out
- * @param { string } [prop] - property to sort by
+ * @param { object } data - nested data: nestedStateData
+ * @param { string } prop - property of interest
  * @param { number } [n=10] - number of data to return
+ * @param { function } [addProp] - function for adding additional property,
+ * takes as param {foo}, expect return {foo} with additional property prop
+ * implemented with Array.map(addProp) on [year].values
  * @returns { object[] } { fips,name,value }
  */
-function dataTopNStates (data, n = 10) {
-  return Object.keys(data).map(function (state) {
-    if (state > 57) { return }
-    let statename = fipsMap.get(state)
-    return {fips: state, name: statename, value: data[state].n1}
+function dataTopNStates (data, prop, n = 10, addProp) {
+  let response = {}
+  data.forEach(function (direc) {
+    response[direc.key] = response[direc.key] || {}
+    direc.values.forEach(function (yr) {
+      response[direc.key][yr.key] = yr.values.map(function (state) {
+        if (state.key > 57) { return }
+        let statename = fipsMap.get(state.key)
+        if (addProp && typeof addProp === 'function') {
+          state.value = addProp(state.value)
+        }
+        let res = Object.assign({fips: state.key, name: statename, value: state.value[prop]}, state.value)
+        delete res[prop]
+        return res
+      })
+      // remove (state > 57: undefined) placeholders
+      .filter(function (el) { return el !== undefined })
+      .sort(function (a, b) {
+        return Number.parseInt(b.value) - Number.parseInt(a.value)
+      })
+      .slice(0, n)
+    })
+  })
+  return response
+}
+
+/** @function dataAnnualStatesForDimple
+ * @param { object[] } data - nestedStateDataByYear[direction].values
+ * @returns { object[] } - example: {fips:"10", name:"DE", year:"2004-2005", value:15}
+ * @description returns data in form for use in dimple line chart
+ */
+function dataAnnualStatesForDimple (data) {
+  return data.map(function (state) {
+    if (state.key > 57) { return }
+    let statename = fipsMap.get(state.key)
+    let res = years.map(function (yr) {
+      let v = state.values.find(function (y) { return y.key === yr })
+      let value = v === undefined ? 0 : v.value.n1
+      return {fips: state.key, name: statename, year: fullYear(yr), value: value}
+    })
+    return res
   })
   // remove (state > 57: undefined) placeholders
   .filter(function (el) { return el !== undefined })
-  .sort(function (a, b) {
-    return Number.parseInt(b.value) - Number.parseInt(a.value)
-  })
-  .slice(0, n)
+  // flatten array of arrays: [[1],[2],[3]] -> [1,2,3]
+  .reduce(function (a, b) {
+    return a.concat(b)
+  }, [])
 }
 
 /** @function write
