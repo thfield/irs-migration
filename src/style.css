@@ -22,3 +22,14 @@
   font-family: sans-serif;
   font-size: 12px;
 }
+
+.selector-control {
+  margin: 0.5rem;  
+}
+
+#selected-year {
+  border: 1px #787676 solid;
+  padding: 3px;
+  margin: 0 2px;
+  border-radius: 4px;
+}

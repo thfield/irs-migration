@@ -6,14 +6,25 @@ import './style.css'
 // import {dimple} from 'dimple'
 // import barChart from '../charts/bar-chart.js'
 
+// TODO: better state management
+// TODO: get dimple & webpack working correctly
+// TODO: county lineshapes transition to circles
+// TODO: map tooltip follow mouse
+// TODO: net flow in-out
+// TODO: change chart colors on im/em-igrate direction change
+
 let fipsCounty = '06075'
 let year = '1415'
-// let years = ['0405', '0506', '0607', '0708', '0809', '0910', '1011', '1112', '1213', '1314', '1415']
 let direction = document.querySelector('#direction').value
 
 let colorSwatches = {
   in: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#006d2c', '#00441b'],
   out: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d']
+}
+
+colorSwatches.chart = {
+  in: new dimple.color(colorSwatches.in[6]),
+  out: new dimple.color(colorSwatches.out[6])
 }
 
 let path = '../data'
@@ -24,7 +35,10 @@ let statesPath = `${path}/geo/states.topojson`
 let fipsPath = `${path}/fipscodes.csv`
 
 d3.queue()
-  .defer(d3.csv, dataPath)
+  .defer(d3.csv, dataPath, function (row) {
+    let meanAgi = +row.agi / +row.n1
+    return Object.assign(row, {meanAgi: meanAgi})
+  })
   .defer(d3.json, chartPath)
   .defer(d3.json, statesPath)
   .defer(d3.json, shapesPath)
@@ -68,24 +82,25 @@ function initialDraw (error, data, chartData, us, counties, fips) {
       .key(function (d) { return d.year })
       .object(data)
 
-  /* *** begin color scale setting *** */
-  let n1Vals = nestedCountyData[direction][year].map(d => {
-    return (d.y1_statefips < 58 && d.id !== fipsCounty && d.n1 !== '-1')
-    ? +d.n1
-    : undefined
-  })
-
+  /* *** set color scale *** */
   let color = d3.scaleQuantile()
     .range(colorSwatches[direction])
-    .domain(n1Vals)
-  /* *** end color scale setting *** */
+    .domain(domainVals(nestedCountyData, direction, year, 'n1'))
 
-  /* *** populate year selector dropdown *** */
-  d3.select('#year').selectAll('option').data(Object.keys(nestedCountyData[direction]).sort())
-    .enter().append('option')
-    .attr('value', function (d) { return d })
-    .attr('selected', function (d) { return d === '1415' })
-    .text(fullYear)
+  /* *** populate year selector *** */
+  let years = Object.keys(nestedCountyData[direction]).sort()
+  let yearSelector = document.getElementById('year')
+  yearSelector.max = years.length - 1
+  yearSelector.value = years.length - 1
+  document.getElementById('selected-year').innerHTML = fullYear(years[years.length - 1])
+
+  /* *** populate state selector *** */
+  let states = Object.keys(chartData.charts.linechart[direction])
+  let stateSelector = d3.select('#stateyear')
+  stateSelector.selectAll('.stateoptions')
+    .data(states).enter().append('option')
+      .attr('value', (d) => d)
+      .text((d) => d)
 
   /* *** start map drawing *** */
   let mapSvg = d3.select('#map svg')
@@ -96,7 +111,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   mapSvg.append('g')
     .attr('class', 'legendQuant')
     .attr('transform', 'translate(830,300)')
-  var legend = d3.legendColor()
+  let legend = d3.legendColor()
     .labelFormat(d3.format(',d'))
     .title('')
     .titleWidth(100)
@@ -131,18 +146,20 @@ function initialDraw (error, data, chartData, us, counties, fips) {
    * @param {string} geoid - id = `${statefips}${countyfips}`
    * @param {string} year - one of ['0405', ..., '1415']
    * @param {string} direction - 'in'||'out'
+   * @param {string} stat - one of ['n1', 'n2', 'agi']
    * @returns {?number}
    * @description Returns either the value for the record with id=geoid or null
    */
-  function getVal (geoid, year, direction) {
+  function getVal (geoid, year, direction, stat = 'n1') {
     let val = nestedCountyData[direction][year].find(el => el.id === geoid)
-    return val === undefined ? null : val.n1
+    return val === undefined ? null : val[stat]
   }
 
   /* *** tooltip handler functions *** */
   function ttOver (d) {
+    let stat = document.getElementById('stat').value
     d3.select(this).classed('highlight', true)
-    info.html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${getVal(d.properties.geoid, year, direction)}</span>`)
+    info.html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${getVal(d.properties.geoid, year, direction, stat)}</span>`)
   }
   function ttOut (d) {
     d3.select(this).classed('highlight', false)
@@ -150,89 +167,140 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   }
   /* *** end map drawing *** */
 
-  /* *** start draw the barchart *** */
-  let topCountyData = chartData.counties.n1.[direction][year]
-  let topCountyElement = dimple.newSvg('#rank', 960, 400)
-  var topCountyChart = new dimple.chart(topCountyElement, topCountyData)
-  topCountyChart.setMargins(30, 30, 30, 150)
-  topCountyChart.addCategoryAxis('x', 'name')
-  topCountyChart.addMeasureAxis('y', 'value')
+  /* *** start draw the counties barchart *** */
+  let topCountyElement = dimple.newSvg('#rank-county', 960, 400)
+  var topCountyChart = new dimple.chart(topCountyElement, chartData.counties.n1[direction][year])
+  topCountyChart.setMargins(50, 30, 30, 150)
+  topCountyChart.addCategoryAxis('x', 'name').title = 'County'
+  let topCountyChartY = topCountyChart.addMeasureAxis('y', 'value')
+  topCountyChartY.title = statFullName['n1']
+  topCountyChart.defaultColors = [colorSwatches.chart[direction]]
   topCountyChart.addSeries(null, dimple.plot.bar)
   topCountyChart.draw()
-  /* *** end draw the barchart *** */
+  /* *** end draw the counties barchart *** */
+
+  /* *** start draw the out of state counties barchart *** */
+  let topCountyOutOfStateElement = dimple.newSvg('#rank-county-outofstate', 960, 400)
+  var topCountyOutOfStateChart = new dimple.chart(topCountyOutOfStateElement, chartData.counties.outOfState.n1[direction][year])
+  topCountyOutOfStateChart.setMargins(50, 30, 30, 150)
+  topCountyOutOfStateChart.addCategoryAxis('x', 'name').title = 'County'
+  let topCountyOutOfStateChartY = topCountyOutOfStateChart.addMeasureAxis('y', 'value')
+  topCountyOutOfStateChartY.title = statFullName['n1']
+  topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
+  topCountyOutOfStateChart.addSeries(null, dimple.plot.bar)
+  topCountyOutOfStateChart.draw()
+  /* *** end draw the counties barchart *** */
+
+  /* *** start draw the states barchart *** */
+  let topStateElement = dimple.newSvg('#rank-state', 960, 400)
+  var topStateChart = new dimple.chart(topStateElement, chartData.states.n1[direction][year])
+  topStateChart.setMargins(50, 30, 30, 150)
+  topStateChart.addCategoryAxis('x', 'name').title = 'State'
+  let topStateChartY = topStateChart.addLogAxis('y', 'value')
+  topStateChartY.title = statFullName['n1']
+  topStateChart.defaultColors = [colorSwatches.chart[direction]]
+  topStateChart.addSeries(null, dimple.plot.bar)
+  topStateChart.draw()
+  /* *** end draw the states barchart *** */
 
   /* *** start draw the linechart *** */
-  let annualData = chartData.charts.linechart.in
+  let annualData = chartData.charts.linechart[direction].CA.map(function (d) {
+    return {year: d.year, value: d[document.getElementById('stat').value]}
+  })
   let annualElement = dimple.newSvg('#annual', 960, 400)
   var annualChart = new dimple.chart(annualElement, annualData)
-  annualChart.setMargins(30, 30, 30, 40)
-  annualChart.addCategoryAxis('x', 'year')
-  annualChart.addLogAxis('y', 'value')
-  annualChart.addSeries('name', dimple.plot.line)
-  annualChart.addLegend(10, 20, 700, 40, 'right')
+  annualChart.setMargins(70, 50, 50, 40)
+  annualChart.addCategoryAxis('x', 'year').title = 'Year'
+  let annualChartY = annualChart.addAxis('y', 'value')
+  annualChartY.title = statFullName['n1']
+  annualChart.addSeries(null, dimple.plot.line)
+  annualChart.defaultColors = [colorSwatches.chart[direction]]
   annualChart.draw()
   /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
-  // document.querySelector('#year').onchange = function(e){
-  //   year = e.target.value
-  //   direction = document.querySelector('#direction').value
-  //   n1Vals = nestedCountyData[direction][year].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : undefined)
-  //
-  //   color
-  //       .domain( n1Vals )
-  //       .range(colorSwatches[direction])
-  //
-  //   countymapel.selectAll('path')
-  //         .attr('fill', function(d){
-  //           let num = getVal(d.properties.geoid,year,direction)
-  //           return color(num)
-  //         })
-  //
-  //   // mapSvg.select('.legendQuant').remove() // update doesn't seem to call a color change on the legend
-  //   legend.scale(color)
-  //   mapSvg.select('.legendQuant')
-  //     .call(legend)
-  //
-  //   topTenData = findTopN(nestedCountyData[direction][year])
-  //   topTenChart.data = topTenData
-  //   topTenChart.draw(250,true)
-  // }
-  //
-  // document.querySelector('#direction').onchange = function(e){
-  //   year = document.querySelector('#year').value
-  //   direction = e.target.value
-  //   n1Vals = nestedCountyData[direction][year].map(d => (d.y1_statefips < 58  && d.id !== fipsCounty && d.n1 != '-1') ? +d.n1 : undefined)
-  //
-  //   color
-  //       .domain( d3.extent(n1Vals) )
-  //       .range(colorArray[direction])
-  //
-  //   countymapel.selectAll('path')
-  //     .attr('fill', function(d){
-  //       let num = getVal(d.properties.geoid,year,direction)
-  //       return color(num)
-  //     })
-  //   /* *** draw the legend *** */
-  //   mapSvg.append('g')
-  //     .attr('class', 'legendQuant')
-  //     .attr('transform', 'translate(830,300)')
-  //
-  //   mapSvg.select('.legendQuant').remove() // update doesn't seem to call a color change on the legend
-  //   legend.scale(color)
-  //   mapSvg.select('.legendQuant')
-  //     .call(legend)
-  //
-  //   topTenData = findTopN(nestedCountyData[direction][year])
-  //   topTenChart.colorSchema(colorSwatches[direction])
-  //   topTenElement.datum(topTenData).call(topTenChart)
-  // }
+  stateSelector.on('change', function () {
+    let stat = document.getElementById('stat').value
+    annualChart.data = chartData.charts.linechart[direction][this.value].map(function (d) {
+      return {year: d.year, value: d[stat]}
+    })
+    annualChart.draw()
+  })
+  yearSelector.addEventListener('change', function () {
+    document.getElementById('selected-year').innerHTML = fullYear(years[this.value])
+    changeInput(years[this.value], null, null)
+  })
+  document.getElementById('direction').addEventListener('change', function () {
+    changeInput(null, this.value, null)
+  })
+  document.getElementById('stat').addEventListener('change', function () {
+    changeInput(null, null, this.value)
+  })
+
+  function changeInput (year, direction, stat) {
+    let nostateupdate = false
+    if (year) { nostateupdate = true }
+    year = year || years[yearSelector.value]
+    direction = direction || document.querySelector('#direction').value
+    stat = stat || document.querySelector('#stat').value
+    let state = document.querySelector('#stateyear').value
+
+    color
+      .domain(domainVals(nestedCountyData, direction, year, stat))
+      .range(colorSwatches[direction])
+
+    countymapel.selectAll('path')
+      .attr('fill', function (d) {
+        let num = getVal(d.properties.geoid, year, direction, stat)
+        return color(num)
+      })
+
+    mapSvg.select('.legendCells').remove() // update doesn't seem to call a color change on the legend
+    legend.scale(color)
+    mapSvg.select('.legendQuant')
+      .call(legend)
+    console.log(direction)
+
+    topCountyOutOfStateChart.data = chartData.counties.outOfState[stat][direction][year]
+    topCountyOutOfStateChart.defaultColors = colorSwatches.chart[direction]
+    topCountyOutOfStateChartY.title = statFullName[stat]
+    topCountyOutOfStateChart.draw()
+
+    topCountyChart.data = chartData.counties[stat][direction][year]
+    topCountyChart.defaultColors = colorSwatches.chart[direction]
+    topCountyChartY.title = statFullName[stat]
+    topCountyChart.draw()
+
+    topStateChart.data = chartData.states[stat][direction][year]
+    topStateChart.defaultColors = colorSwatches.chart[direction]
+    topStateChartY.title = statFullName[stat]
+    topStateChart.draw()
+
+    if (!nostateupdate) {
+      annualChart.data = chartData.charts.linechart[direction][state].map(function (d) {
+        return {year: d.year, value: d[stat]}
+      })
+      annualChartY.title = statFullName[stat]
+      annualChart.defaultColors = colorSwatches.chart[direction]
+      annualChart.draw()
+    }
+  }
   /* *** end page interaction handlers *** */
-}
+} /* *** end initialDraw *** */
 
 /*******************************************************************************
         data munge helper functions
 *******************************************************************************/
+/** @function domainVals
+ * @param {object} data - nestedCountyData
+ * @param {string} direction - 'in'||'out'
+ * @param {string} year - one of ['0405', ..., '1415']
+ * @param {string} stat - one of ['n1', 'n2', 'agi', 'meanAgi']
+ * @returns {array} array of stat values for the data in that direction & year
+ */
+function domainVals (data, direction, year, stat) {
+  return data[direction][year].map(d => (d.y1_statefips < 58 && d.id !== fipsCounty && d[stat] !== '-1') ? +d[stat] : null)
+}
 
 /** @function inOrOut
  * @param { object } d - d3.csvParse'd row of data from `000000combined.csv` file
@@ -253,4 +321,11 @@ function fullYear (d) {
   res[1] = res[1] > 79 ? `19${res[1]}` : `20${res[1]}`
   res[2] = res[2] > 79 ? `19${res[2]}` : `20${res[2]}`
   return `${res[1]}-${res[2]}`
+}
+
+let statFullName = {
+  n1: 'Number of Returns',
+  n2: 'Number of Exemptions',
+  agi: 'Total Adjusted Gross Income',
+  meanAgi: 'Mean Adjusted Gross Income'
 }
