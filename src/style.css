@@ -23,8 +23,9 @@ body {
 }
 
 .highlight {
-  stroke: #f00;
-  stroke-width: 2px;
+  fill: #ac2ee7;
+  /*stroke: #f00;
+  stroke-width: 2px;*/
 }
 
 .legendCells {
@@ -52,4 +53,16 @@ body {
   padding: 3px;
   margin: 0 2px;
   border-radius: 4px;
+}
+
+.tooltip {
+  position: absolute;
+  display: none;
+  min-width: 80px;
+  height: auto;
+  background: none repeat scroll 0 0 #ffffff;
+  border: 1px solid #777;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
 }

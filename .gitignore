@@ -1,5 +1,4 @@
 data/
-munge/foo.js
-munge/foo.sh
+foo*
 temp
 dist/

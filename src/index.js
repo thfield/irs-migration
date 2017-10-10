@@ -112,7 +112,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   /* *** start map drawing *** */
   let mapSvg = d3.select('#map svg')
   let path = d3.geoPath()
-  let info = d3.select('#info')
+  let tooltip = d3.select('#tooltip')
 
   /* *** draw legend *** */
   mapSvg.append('g')
@@ -142,6 +142,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
         .attr('id', function (d) { return d.geoid })
         .attr('d', path)
         .on('mouseover', ttOver)
+        .on('mousemove', ttMove)
         .on('mouseout', ttOut)
 
   /* *** draw states *** */
@@ -164,13 +165,19 @@ function initialDraw (error, data, chartData, us, counties, fips) {
 
   /* *** tooltip handler functions *** */
   function ttOver (d) {
-    let stat = document.getElementById('stat').value
     d3.select(this).classed('highlight', true)
-    info.html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${getVal(d.properties.geoid, year, direction, stat)}</span>`)
+  }
+  function ttMove (d) {
+    let stat = document.getElementById('stat').value
+    tooltip
+        .style('left', d3.event.pageX - 50 + 'px')
+        .style('top', d3.event.pageY - 70 + 'px')
+        .style('display', 'inline-block')
+        .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${getVal(d.properties.geoid, year, direction, stat)}</span>`)
   }
   function ttOut (d) {
+    tooltip.style('display', 'none')
     d3.select(this).classed('highlight', false)
-    info.html('')
   }
   /* *** end map drawing *** */
 
