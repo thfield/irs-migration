@@ -145,10 +145,10 @@ let topMeanAgiCountiesOutOfState = dataTopNCounties(nestedCountyData, 'meanAgi',
   return d
 }, true)
 
-let topN1States = dataTopNStates(nestedStateData, 'n1', 15)
-let topN2States = dataTopNStates(nestedStateData, 'n2', 15)
-let topAgiStates = dataTopNStates(nestedStateData, 'agi', 15)
-let topMeanAgiStates = dataTopNStates(nestedStateData, 'meanAgi', 15, function (d) {
+let topN1States = dataTopNStates(nestedStateData, 'n1', 16)
+let topN2States = dataTopNStates(nestedStateData, 'n2', 16)
+let topAgiStates = dataTopNStates(nestedStateData, 'agi', 16)
+let topMeanAgiStates = dataTopNStates(nestedStateData, 'meanAgi', 16, function (d) {
   d.meanAgi = +d.agi / +d.n1
   return d
 })
@@ -186,6 +186,7 @@ let output = {
   }
 }
 write('../data/chartData.json', output)
+// write('../data/foo.json', topN1States)
 
 /*******************************************************************************
         data munge functions

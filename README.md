@@ -58,6 +58,7 @@ Say, Manhattan (FIPS code 36 061):
 - select county to compare over time
 - allow user to choose different year
 - combine gif-munge and gif-create into single node script?
+- note: 06075inflowcombined.csv has duplicate rows for cook county IL
 
 ### Done
 - command line generation of map

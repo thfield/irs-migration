@@ -10,8 +10,15 @@ import './style.css'
 // TODO: get dimple & webpack working correctly
 // TODO: county lineshapes transition to circles
 // TODO: map tooltip follow mouse
+// TODO: map zooming
 // TODO: net flow in-out
+// TODO: state flow: in, out, delta
+// TODO: total number of counties
 // TODO: change chart colors on im/em-igrate direction change
+// TODO: dimple doesn't seem to handle elements in selection.exit() properly
+//     - throws `Error: <rect> attribute x: Expected length, "NaN".` on redraw
+// TODO: use miso for data grouping? http://misoproject.com/dataset/
+//     -re-munge data to contain column 'direction' = in||out
 
 let fipsCounty = '06075'
 let year = '1415'
@@ -89,7 +96,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
 
   /* *** populate year selector *** */
   let years = Object.keys(nestedCountyData[direction]).sort()
-  let yearSelector = document.getElementById('year')
+  let yearSelector = document.getElementById('year-selector')
   yearSelector.max = years.length - 1
   yearSelector.value = years.length - 1
   document.getElementById('selected-year').innerHTML = fullYear(years[years.length - 1])
@@ -174,7 +181,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   topCountyChart.addCategoryAxis('x', 'name').title = 'County'
   let topCountyChartY = topCountyChart.addMeasureAxis('y', 'value')
   topCountyChartY.title = statFullName['n1']
-  topCountyChart.defaultColors = [colorSwatches.chart[direction]]
+  // topCountyChart.defaultColors = [colorSwatches.chart[direction]]
   topCountyChart.addSeries(null, dimple.plot.bar)
   topCountyChart.draw()
   /* *** end draw the counties barchart *** */
@@ -186,19 +193,22 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   topCountyOutOfStateChart.addCategoryAxis('x', 'name').title = 'County'
   let topCountyOutOfStateChartY = topCountyOutOfStateChart.addMeasureAxis('y', 'value')
   topCountyOutOfStateChartY.title = statFullName['n1']
-  topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
+  // topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
   topCountyOutOfStateChart.addSeries(null, dimple.plot.bar)
   topCountyOutOfStateChart.draw()
   /* *** end draw the counties barchart *** */
 
   /* *** start draw the states barchart *** */
   let topStateElement = dimple.newSvg('#rank-state', 960, 400)
-  var topStateChart = new dimple.chart(topStateElement, chartData.states.n1[direction][year])
+  var topStateChart = new dimple.chart(topStateElement, chartData.states.n1[direction][year].filter(function (d) {
+    return d.fips !== '06'
+  }))
   topStateChart.setMargins(50, 30, 30, 150)
   topStateChart.addCategoryAxis('x', 'name').title = 'State'
-  let topStateChartY = topStateChart.addLogAxis('y', 'value')
+  // let topStateChartY = topStateChart.addLogAxis('y', 'value')
+  let topStateChartY = topStateChart.addMeasureAxis('y', 'value')
   topStateChartY.title = statFullName['n1']
-  topStateChart.defaultColors = [colorSwatches.chart[direction]]
+  // topStateChart.defaultColors = [colorSwatches.chart[direction]]
   topStateChart.addSeries(null, dimple.plot.bar)
   topStateChart.draw()
   /* *** end draw the states barchart *** */
@@ -209,12 +219,12 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   })
   let annualElement = dimple.newSvg('#annual', 960, 400)
   var annualChart = new dimple.chart(annualElement, annualData)
-  annualChart.setMargins(70, 50, 50, 40)
+  annualChart.setMargins(70, 0, 50, 40)
   annualChart.addCategoryAxis('x', 'year').title = 'Year'
   let annualChartY = annualChart.addAxis('y', 'value')
   annualChartY.title = statFullName['n1']
   annualChart.addSeries(null, dimple.plot.line)
-  annualChart.defaultColors = [colorSwatches.chart[direction]]
+  // annualChart.defaultColors = [colorSwatches.chart[direction]]
   annualChart.draw()
   /* *** end draw the linechart *** */
 
@@ -259,29 +269,30 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     legend.scale(color)
     mapSvg.select('.legendQuant')
       .call(legend)
-    console.log(direction)
 
-    topCountyOutOfStateChart.data = chartData.counties.outOfState[stat][direction][year]
-    topCountyOutOfStateChart.defaultColors = colorSwatches.chart[direction]
-    topCountyOutOfStateChartY.title = statFullName[stat]
-    topCountyOutOfStateChart.draw()
-
+    // topCountyChart.defaultColors = [colorSwatches.chart[direction]] // use colorScale instead of defaultColors?
     topCountyChart.data = chartData.counties[stat][direction][year]
-    topCountyChart.defaultColors = colorSwatches.chart[direction]
     topCountyChartY.title = statFullName[stat]
     topCountyChart.draw()
 
-    topStateChart.data = chartData.states[stat][direction][year]
-    topStateChart.defaultColors = colorSwatches.chart[direction]
+    topStateChart.data = chartData.states[stat][direction][year].filter(function (d) {
+      return d.fips !== '06'
+    })
+    // topStateChart.defaultColors = [colorSwatches.chart[direction]]
     topStateChartY.title = statFullName[stat]
     topStateChart.draw()
+
+    topCountyOutOfStateChart.data = chartData.counties.outOfState[stat][direction][year]
+    // topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
+    topCountyOutOfStateChartY.title = statFullName[stat]
+    topCountyOutOfStateChart.draw()
 
     if (!nostateupdate) {
       annualChart.data = chartData.charts.linechart[direction][state].map(function (d) {
         return {year: d.year, value: d[stat]}
       })
       annualChartY.title = statFullName[stat]
-      annualChart.defaultColors = colorSwatches.chart[direction]
+      // annualChart.defaultColors = [colorSwatches.chart[direction]]
       annualChart.draw()
     }
   }
