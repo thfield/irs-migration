@@ -16,7 +16,8 @@ import './style.css'
 // TODO: total number of counties
 // TODO: change chart colors on im/em-igrate direction change
 // TODO: dimple doesn't seem to handle elements in selection.exit() properly
-//     - throws `Error: <rect> attribute x: Expected length, "NaN".` on redraw
+//     - barchars throw `Error: <rect> attribute x: Expected length, "NaN".` on redraw
+//     - linechart throws `Uncaught DOMException: Failed to execute 'querySelectorAll' on 'Element'`
 // TODO: use miso for data grouping? http://misoproject.com/dataset/
 //     -re-munge data to contain column 'direction' = in||out
 
@@ -122,9 +123,10 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   mapSvg
     .on('click', stopped, true)
     .call(zoom) // delete this line to disable free zooming
-
+  let mapEls = mapSvg.append('g')
+  let legendEl = mapSvg.append('g')
   /* *** draw legend *** */
-  mapSvg.append('g')
+  legendEl
     .attr('class', 'legendQuant')
     .attr('transform', 'translate(830,300)')
   let legend = d3.legendColor()
@@ -136,8 +138,6 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   mapSvg.select('.legendQuant')
     .call(legend)
 
-  /* *** draw counties *** */
-  let mapEls = mapSvg.append('g')
   /* *** draw counties *** */
   let countymapel = mapEls.append('g')
         .attr('class', 'counties')
@@ -238,6 +238,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   topCountyChart.addCategoryAxis('x', 'name').title = 'County'
   let topCountyChartY = topCountyChart.addMeasureAxis('y', 'value')
   topCountyChartY.title = statFullName['n1']
+  topCountyChartY.tickFormat = ',d'
   // topCountyChart.defaultColors = [colorSwatches.chart[direction]]
   topCountyChart.addSeries(null, dimple.plot.bar)
   topCountyChart.draw()
@@ -250,6 +251,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   topCountyOutOfStateChart.addCategoryAxis('x', 'name').title = 'County'
   let topCountyOutOfStateChartY = topCountyOutOfStateChart.addMeasureAxis('y', 'value')
   topCountyOutOfStateChartY.title = statFullName['n1']
+  topCountyOutOfStateChartY.tickFormat = ',d'
   // topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
   topCountyOutOfStateChart.addSeries(null, dimple.plot.bar)
   topCountyOutOfStateChart.draw()
@@ -265,6 +267,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   // let topStateChartY = topStateChart.addLogAxis('y', 'value')
   let topStateChartY = topStateChart.addMeasureAxis('y', 'value')
   topStateChartY.title = statFullName['n1']
+  topStateChartY.tickFormat = ',d'
   // topStateChart.defaultColors = [colorSwatches.chart[direction]]
   topStateChart.addSeries(null, dimple.plot.bar)
   topStateChart.draw()
@@ -280,6 +283,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   annualChart.addCategoryAxis('x', 'year').title = 'Year'
   let annualChartY = annualChart.addAxis('y', 'value')
   annualChartY.title = statFullName['n1']
+  annualChartY.tickFormat = ',d'
   annualChart.addSeries(null, dimple.plot.line)
   // annualChart.defaultColors = [colorSwatches.chart[direction]]
   annualChart.draw()
@@ -319,7 +323,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     countymapel.selectAll('path')
       .attr('fill', function (d) {
         let num = getVal(d.properties.geoid, year, direction, stat)
-        return color(num)
+        return num === null ? '#fff' : color(num)
       })
 
     mapSvg.select('.legendCells').remove() // update doesn't seem to call a color change on the legend
