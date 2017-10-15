@@ -137,7 +137,9 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     .call(legend)
 
   /* *** draw counties *** */
-  let countymapel = mapSvg.append('g')
+  let mapEls = mapSvg.append('g')
+  /* *** draw counties *** */
+  let countymapel = mapEls.append('g')
         .attr('class', 'counties')
   countymapel.selectAll('path')
       .data(topojson.feature(counties, counties.objects.counties).features)
@@ -156,7 +158,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
         .on('click', clicked)
 
   /* *** draw states *** */
-  countymapel.append('path')
+  mapEls.append('path')
       .attr('stroke-width', 0.5)
       .attr('d', path(topojson.mesh(us, us.objects.states)))
 
@@ -220,8 +222,8 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   }
 
   function zoomed () {
-    countymapel.style('stroke-width', 1.5 / d3.event.transform.k + 'px')
-    countymapel.attr('transform', d3.event.transform)
+    mapEls.style('stroke-width', 1.5 / d3.event.transform.k + 'px')
+    mapEls.attr('transform', d3.event.transform)
   }
 
   function stopped () {
