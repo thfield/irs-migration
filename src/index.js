@@ -115,6 +115,14 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   let path = d3.geoPath()
   let tooltip = d3.select('#tooltip')
 
+  let active = d3.select(null)
+  let zoom = d3.zoom()
+    .scaleExtent([1, 8])
+    .on('zoom', zoomed)
+  mapSvg
+    .on('click', stopped, true)
+    .call(zoom) // delete this line to disable free zooming
+
   /* *** draw legend *** */
   mapSvg.append('g')
     .attr('class', 'legendQuant')
@@ -145,9 +153,10 @@ function initialDraw (error, data, chartData, us, counties, fips) {
         .on('mouseover', ttOver)
         .on('mousemove', ttMove)
         .on('mouseout', ttOut)
+        .on('click', clicked)
 
   /* *** draw states *** */
-  mapSvg.append('path')
+  countymapel.append('path')
       .attr('stroke-width', 0.5)
       .attr('d', path(topojson.mesh(us, us.objects.states)))
 
@@ -179,6 +188,44 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   function ttOut (d) {
     tooltip.style('display', 'none')
     d3.select(this).classed('highlight', false)
+  }
+
+  /* *** zooming functions *** */
+  function clicked (d) {
+    if (active.node() === this) return reset()
+    active.classed('active', false)
+    active = d3.select(this).classed('active', true)
+
+    let width = mapSvg.attr('width')
+    let height = mapSvg.attr('height')
+    let bounds = path.bounds(d)
+    let dx = bounds[1][0] - bounds[0][0]
+    let dy = bounds[1][1] - bounds[0][1]
+    let x = (bounds[0][0] + bounds[1][0]) / 2
+    let y = (bounds[0][1] + bounds[1][1]) / 2
+    let scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height)))
+    let translate = [width / 2 - scale * x, height / 2 - scale * y]
+
+    mapSvg.transition()
+      .duration(750)
+      .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
+  }
+
+  function reset () {
+    active.classed('active', false)
+    active = d3.select(null)
+    mapSvg.transition()
+        .duration(750)
+        .call(zoom.transform, d3.zoomIdentity) // updated for d3 v4
+  }
+
+  function zoomed () {
+    countymapel.style('stroke-width', 1.5 / d3.event.transform.k + 'px')
+    countymapel.attr('transform', d3.event.transform)
+  }
+
+  function stopped () {
+    if (d3.event.defaultPrevented) d3.event.stopPropagation()
   }
   /* *** end map drawing *** */
 

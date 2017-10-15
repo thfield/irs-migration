@@ -55,6 +55,11 @@ body {
   border-radius: 4px;
 }
 
+#map {
+  border: 2px #787676 solid;
+  width: 960px;
+}
+
 .tooltip {
   position: absolute;
   display: none;
