@@ -35,6 +35,7 @@ colorSwatches.chart = {
 }
 
 let path = '../data'
+// let path = '.'
 let dataPath = `${path}/${fipsCounty}/${fipsCounty}combined.csv`
 let chartPath = `${path}/chartData.json`
 let shapesPath = `${path}/${fipsCounty}/${fipsCounty}shapes.topojson`
