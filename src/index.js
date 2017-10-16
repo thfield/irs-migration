@@ -109,13 +109,20 @@ function initialDraw (error, data, chartData, us, counties, fips) {
       .text((d) => d)
 
   /* *** populate statistic info *** */
+  let inflow = getTotalReturns('in', year)
+  let outflow = getTotalReturns('out', year)
   d3.select('#destination-counties')
     .text(nestedCountyData[direction][year].length)
   d3.select('#number-returns')
-    .text(d3.format(',d')(nestedCountyData[direction][year].find(function (county) {
-      return county.id === '96000'
-    }).n1))
+    .text(d3.format(',d')(inflow))
+  d3.select('#net-flow')
+    .text(d3.format(',d')(inflow - outflow))
 
+  function getTotalReturns (direction, year) {
+    return nestedCountyData[direction][year].find(function (county) {
+      return county.id === '96000'
+    }).n1
+  }
 
   /* *** start map drawing *** */
   let mapSvg = d3.select('#map svg')
@@ -325,12 +332,14 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     stat = stat || document.querySelector('#stat').value
     let state = document.querySelector('#stateyear').value
 
+    let inflow = getTotalReturns('in', year)
+    let outflow = getTotalReturns('out', year)
+    d3.select('#number-returns')
+      .text(d3.format(',d')(direction === 'in' ? inflow : outflow))
+    d3.select('#net-flow')
+      .text(d3.format(',d')(inflow - outflow))
     d3.select('#destination-counties')
       .text(nestedCountyData[direction][year].length)
-    d3.select('#number-returns')
-      .text(d3.format(',d')(nestedCountyData[direction][year].find(function (county) {
-        return county.id === '96000'
-      }).n1))
 
     color
       .domain(domainVals(nestedCountyData, direction, year, stat))
