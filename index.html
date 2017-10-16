@@ -38,13 +38,28 @@
 					<option value="meanAgi">Mean Adjusted Gross Income</option>
 				</select>
 			</div>
+			<br>
+			<div>
+				<span>Number of counties:</span>
+				<span id="destination-counties"></span>
+			</div>
+			<br>
+			<div>
+				<span>Total number of returns:</span>
+				<span id="number-returns"></span>
+			</div>
+			<br>
+			<div>
+				<span>&Delta;(in/out) number of returns:</span>
+				<span id="net-flow"></span>
+			</div>
+			<br>
 		</div>
 		<div id="main">
 			<div class="about">
-				<h3>What is this?</h3>
+				<h2>What is this?</h2>
 				<p>The IRS publishes data on migration patterns within the US based on changes in taxpayers' return addresses.  This is an ongoing project to visualize and explore that data, with special attention on San Francisco.  Eventually, the project might be modified to explore any county in the US.</p>
-				<p>The data contains the aggregate number of returns that are filed within a particular county one year and a particular county the next. In this way it is possible to track the migration of taxpayers between specific counties.  In this project, I concentrate on migration patterns into San Francisco.</p>
-				<p>This map currently shows the counties where taxpayers lived in 2014 before moving to San Francisco in 2015, shaded by the number of returns filed.  The more people, the darker the county is shaded.</p>
+				<p>The data contains the aggregate number of returns that are filed within a particular county one year and a particular county the next. In this way it is possible to track the migration of taxpayers between specific counties.  In this project, I concentrate on migration patterns into and out of San Francisco.</p>
 				<p>Use the controls on the left to change the displayed statistic available in the data:
 				<br>Year: The years between which a move took place.
 				<br>Direction: Here, immigration means migration into San Francisco and emigration means migration out of San Francisco
@@ -52,38 +67,66 @@
 				<ul>
 					<li>Number of Returns filed, which approximates the number of households that migrated</li>
 					<li>Number of Personal Exemptions claimed, which approximates the number of individuals</li>
-					<li>Total Adjusted Gross Income</li>
+					<li>Total Adjusted Gross Income, value in thousands of dollars</li>
 					<li>Mean AGI, calculated by dividing Total AGI by Number of Returns.</li>
 				</ul>
 				</p>
 			</div>
 
-
+			<h4>County Map</h4>
+			<p>
+				The map currently shows the counties where taxpayers lived in 2014 before moving to San Francisco in 2015, shaded by the number of returns filed.  The more people, the darker the county is shaded.
+			</p>
+			<p>
+				Mouse over a county to see the value associated with that county. Click to zoom in on a county, then click again to zoom back out. You can also use the mouse wheel to zoom.
+			</p>
 			<div id="map">
-				<svg width="960" height="600" fill="none" stroke="#000" stroke-linejoin="round" stroke-linecap="round"></svg>
+				<svg width="960" height="500" fill="none" stroke="#000" stroke-linejoin="round" stroke-linecap="round"></svg>
 				<div id="tooltip" class="tooltip"></div>
 			</div>
+			<p>
+				People moving into and out of San Francisco tend to move from within California.  Out of state sources and destinations tend to be counties with <a href="https://xkcd.com/1138/">large cities</a>.
+			</p>
+			<br>
 
+			<h4>Top Counties</h4>
+			<div id="rank-county"></div>
+			<p>
+				Year to year, people tend to move to and San Francisco from the same several counties in California: San Mateo, Alameda, Santa Clara, Los Angeles, Contra Costa, Marin, San Diego, Orange, Sacramento, Sonoma.
+			</p>
+			<p>
+				The top five county destinations for exiting San Francisco are consistently Alameda, San Mateo, Contra Costa, Santa Clara, Los Angeles, and Marin.
+			</p>
+			<p>
+				A few counties outside of California tend to make the top 15 sources of immigrants: New York NY, Cook IL, King WA, Kings NY, Middlesex MA, Washington DC, and overseas
+			</p>
+			<br>
 
-			<div id="rank-county">
-				<span>Top Counties</span>
-				<br>
-			</div>
-			<div id="rank-county-outofstate">
-				<span>Top Counties (out of state)</span>
-				<br>
-			</div>
+			<h4>Top Counties (out of state)</h4>
+			<div id="rank-county-outofstate"></div>
+			<p>
+				Since 2009-2010, new Californians have come to San Francisco from New York NY, Cook IL, and King WA. Before 2009, the top out of state source of immigration tended to be overseas, then New York NY, then either Cook IL or King WA.
+			</p>
+			<p>
+				San Franciscans tend to leave for a consistent few counties: New York NY, overseas, King WA, Cook IL, Kings NY, and Multnomah OR have dominated the top 5 since 2004-2005.
+			</p>
+			<br>
 
-			<div id="rank-state">
-				<span>Top States (out of state)</span>
-				<br>
-			</div>
+			<h4>Top States (out of state)</h4>
+			<div id="rank-state"></div>
+			<p>
+				Most people come to San Francisco from somewhere else in California. After California, they come from New York. Since 2009-2010 the out-of-staters have come from New York by almost twofold, then Massachusetts, Washington, or Illinois. Before then, people moved here from overseas or Massachusetts.
+			</p>
+			<p>
+				San Franciscans overwhelmingly leave for New York.  After New York, they will move overseas.
+			</p>
+			<br>
 
-			<div id="annual">
-				<span>Destination State</span>
-				<select id="stateyear"></select>
-				<br>
-			</div>
+			<h4>Source/Destination State</h4>
+			<select id="stateyear"></select>
+			<div id="annual"></div>
+			<p></p>
+			<br>
 
 		</div>
 	</div>
