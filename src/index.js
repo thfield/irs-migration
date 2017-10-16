@@ -9,11 +9,8 @@ import './style.css'
 // TODO: better state management
 // TODO: get dimple & webpack working correctly
 // TODO: county lineshapes transition to circles
-// TODO: map tooltip follow mouse
-// TODO: map zooming
 // TODO: net flow in-out
 // TODO: state flow: in, out, delta
-// TODO: total number of counties
 // TODO: change chart colors on im/em-igrate direction change
 // TODO: dimple doesn't seem to handle elements in selection.exit() properly
 //     - barchars throw `Error: <rect> attribute x: Expected length, "NaN".` on redraw
@@ -111,6 +108,15 @@ function initialDraw (error, data, chartData, us, counties, fips) {
       .attr('value', (d) => d)
       .text((d) => d)
 
+  /* *** populate statistic info *** */
+  d3.select('#destination-counties')
+    .text(nestedCountyData[direction][year].length)
+  d3.select('#number-returns')
+    .text(d3.format(',d')(nestedCountyData[direction][year].find(function (county) {
+      return county.id === '96000'
+    }).n1))
+
+
   /* *** start map drawing *** */
   let mapSvg = d3.select('#map svg')
   let path = d3.geoPath()
@@ -145,7 +151,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
       .data(topojson.feature(counties, counties.objects.counties).features)
       .enter().append('path')
         .attr('stroke', '#fff')
-        .attr('stroke-width', 0.5)
+        // .attr('stroke-width', 0.5)
         .attr('fill', function (d) {
           let num = getVal(d.properties.geoid, year, direction)
           return num === null ? '#fff' : color(num)
@@ -180,12 +186,15 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     d3.select(this).classed('highlight', true)
   }
   function ttMove (d) {
+    let year = years[document.getElementById('year-selector').value]
+    let direction = document.getElementById('direction').value
     let stat = document.getElementById('stat').value
+    let val = getVal(d.properties.geoid, year, direction, stat)
     tooltip
         .style('left', d3.event.pageX - 50 + 'px')
         .style('top', d3.event.pageY - 70 + 'px')
         .style('display', 'inline-block')
-        .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${getVal(d.properties.geoid, year, direction, stat)}</span>`)
+        .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span>`)
   }
   function ttOut (d) {
     tooltip.style('display', 'none')
@@ -234,7 +243,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   /* *** start draw the counties barchart *** */
   let topCountyElement = dimple.newSvg('#rank-county', 960, 400)
   var topCountyChart = new dimple.chart(topCountyElement, chartData.counties.n1[direction][year])
-  topCountyChart.setMargins(50, 30, 30, 150)
+  topCountyChart.setMargins(70, 30, 30, 150)
   topCountyChart.addCategoryAxis('x', 'name').title = 'County'
   let topCountyChartY = topCountyChart.addMeasureAxis('y', 'value')
   topCountyChartY.title = statFullName['n1']
@@ -247,7 +256,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   /* *** start draw the out of state counties barchart *** */
   let topCountyOutOfStateElement = dimple.newSvg('#rank-county-outofstate', 960, 400)
   var topCountyOutOfStateChart = new dimple.chart(topCountyOutOfStateElement, chartData.counties.outOfState.n1[direction][year])
-  topCountyOutOfStateChart.setMargins(50, 30, 30, 150)
+  topCountyOutOfStateChart.setMargins(70, 30, 30, 150)
   topCountyOutOfStateChart.addCategoryAxis('x', 'name').title = 'County'
   let topCountyOutOfStateChartY = topCountyOutOfStateChart.addMeasureAxis('y', 'value')
   topCountyOutOfStateChartY.title = statFullName['n1']
@@ -258,11 +267,11 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   /* *** end draw the counties barchart *** */
 
   /* *** start draw the states barchart *** */
-  let topStateElement = dimple.newSvg('#rank-state', 960, 400)
+  let topStateElement = dimple.newSvg('#rank-state', 960, 300)
   var topStateChart = new dimple.chart(topStateElement, chartData.states.n1[direction][year].filter(function (d) {
     return d.fips !== '06'
   }))
-  topStateChart.setMargins(50, 30, 30, 150)
+  topStateChart.setMargins(70, 30, 30, 50)
   topStateChart.addCategoryAxis('x', 'name').title = 'State'
   // let topStateChartY = topStateChart.addLogAxis('y', 'value')
   let topStateChartY = topStateChart.addMeasureAxis('y', 'value')
@@ -315,6 +324,13 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     direction = direction || document.querySelector('#direction').value
     stat = stat || document.querySelector('#stat').value
     let state = document.querySelector('#stateyear').value
+
+    d3.select('#destination-counties')
+      .text(nestedCountyData[direction][year].length)
+    d3.select('#number-returns')
+      .text(d3.format(',d')(nestedCountyData[direction][year].find(function (county) {
+        return county.id === '96000'
+      }).n1))
 
     color
       .domain(domainVals(nestedCountyData, direction, year, stat))

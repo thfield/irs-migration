@@ -160,6 +160,12 @@ nestedStateDataByYear.forEach(function (direc) {
 
 let netMigrationForDimple = {}
 
+let ns = nestedCountyData.map(function (direction) {
+  return {direction: direction.key, values: direction.values.map(function (year) {
+    return {key: year.key, length: year.values.length}
+  })}
+})
+
 let output = {
   // color: colorScales,
   charts: {
@@ -185,8 +191,8 @@ let output = {
     meanAgi: topMeanAgiStates
   }
 }
-write('../data/chartData.json', output)
-// write('../data/foo.json', topN1States)
+// write('../data/chartData.json', output)
+write('./foo/foo.json', ns)
 
 /*******************************************************************************
         data munge functions
