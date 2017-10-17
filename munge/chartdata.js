@@ -192,7 +192,7 @@ let output = {
   }
 }
 // write('../data/chartData.json', output)
-write('./foo/foo.json', ns)
+write('./foo/nestedStateData.json', nestedStateData)
 
 /*******************************************************************************
         data munge functions

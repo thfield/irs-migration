@@ -14,7 +14,7 @@ body {
 }
 
 #main {
-  width: 960px;  
+  width: 960px;
 }
 
 #container {
@@ -74,4 +74,11 @@ body {
   border-radius: 5px;
   padding: 10px;
   text-align: center;
+}
+
+.line {
+  fill: none;
+  /*stroke: #1d9cda;*/
+  stroke-width: 2;
+  stroke-linejoin: round;
 }

@@ -1,10 +1,12 @@
 import './style.css'
-// import * as d3 from 'd3'
-// import 'd3-queue'
-// import * as d3Legend from 'd3-svg-legend'
-// import * as topojson from 'topojson'
+import * as d3 from 'd3'
+import 'd3-queue'
+import * as d3Legend from 'd3-svg-legend'
+import * as topojson from 'topojson'
+import * as munge from './munge.js'
 // import {dimple} from 'dimple'
-// import barChart from '../charts/bar-chart.js'
+import barChart from '../charts/bar-chart.js'
+import lineGraph from '../charts/line-graph.js'
 
 // TODO: better state management
 // TODO: get dimple & webpack working correctly
@@ -27,15 +29,14 @@ let colorSwatches = {
   out: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d']
 }
 
-colorSwatches.chart = {
-  in: new dimple.color(colorSwatches.in[6]),
-  out: new dimple.color(colorSwatches.out[6])
-}
+// colorSwatches.chart = {
+//   in: new dimple.color(colorSwatches.in[6]),
+//   out: new dimple.color(colorSwatches.out[6])
+// }
 
 let path = '../data'
 // let path = '.'
 let dataPath = `${path}/${fipsCounty}/${fipsCounty}combined.csv`
-let chartPath = `${path}/chartData.json`
 let shapesPath = `${path}/${fipsCounty}/${fipsCounty}shapes.topojson`
 let statesPath = `${path}/geo/states.topojson`
 let fipsPath = `${path}/fipscodes.csv`
@@ -45,7 +46,6 @@ d3.queue()
     let meanAgi = +row.agi / +row.n1
     return Object.assign(row, {meanAgi: meanAgi})
   })
-  .defer(d3.json, chartPath)
   .defer(d3.json, statesPath)
   .defer(d3.json, shapesPath)
   .defer(d3.csv, fipsPath, function (row) {
@@ -53,7 +53,7 @@ d3.queue()
   })
   .await(initialDraw)
 
-function initialDraw (error, data, chartData, us, counties, fips) {
+function initialDraw (error, data, us, counties, fips) {
   if (error) { throw error }
   /**
     * fipsMap has mapping of:
@@ -84,44 +84,109 @@ function initialDraw (error, data, chartData, us, counties, fips) {
    *          -data: {agi,id,n1,n2,y1_countyfips,y1_statefips,y2_countyfips,y2_statefips,year}
    */
   let nestedCountyData = d3.nest()
-      .key(inOrOut)
+      .key(munge.inOrOut)
       .key(function (d) { return d.year })
-      .object(data)
+      .entries(data)
+
+  /**
+   * nestedStateData nests data from d3.csvParse(00000combined.csv) by:
+   *    -direction: ['in','out']
+   *      -year: ['0405', ..., '1415']
+   *        -statefips: ['01', ..., '58']
+   *          -data: {n1,n2,agi}
+   */
+  let nestedStateData = d3.nest()
+      .key(munge.inOrOut)
+      .key(function (d) { return d.year })
+      .key(function (d) {
+        let direc = munge.inOrOut(d)
+        return d[munge.targetFips(direc)[0]]
+      })
+      .rollup(function (leaves) {
+        return leaves.reduce(function (acc, cur) {
+          // don't count 'states' added by irs aggregation
+          if (cur.y1_statefips > 58 || cur.y2_statefips > 58) { return acc }
+          // don't count non-migrators (where year1residence === year2residence)
+          if (cur.y1_statefips === cur.y2_statefips && cur.y1_countyfips === cur.y2_countyfips) { return acc }
+
+          let n1 = cur.n1 === null ? acc.n1 : acc.n1 + Number.parseInt(cur.n1)
+          let n2 = cur.n2 === null ? acc.n2 : acc.n2 + Number.parseInt(cur.n2)
+          let agi = cur.agi === null ? acc.agi : acc.agi + Number.parseInt(cur.agi)
+
+          return {n1: n1, n2: n2, agi: agi}
+        }, {n1: null, n2: null, agi: null})
+      })
+      .entries(data)
+
+  /**
+   * nestedStateDataByYear nests data from d3.csvParse(00000combined.csv) by:
+   *    -direction: ['in','out']
+   *      -statefips: ['01', ..., '58']
+   *        -year: ['0405', ..., '1415']
+   *          -data: {n1,n2,agi}
+   */
+  let nestedStateDataByYear = d3.nest()
+      .key(munge.inOrOut)
+      .key(function (d) {
+        let direc = munge.inOrOut(d)
+        return d[munge.targetFips(direc)[0]]
+      })
+      .key(function (d) { return d.year })
+      .rollup(function (leaves) {
+        return leaves.reduce(function (acc, cur) {
+          // don't count 'states' added by irs aggregation
+          if (cur.y1_statefips > 58 || cur.y2_statefips > 58) { return acc }
+          // don't count non-migrators (where year1residence === year2residence)
+          if (cur.y1_statefips === cur.y2_statefips && cur.y1_countyfips === cur.y2_countyfips) { return acc }
+
+          let n1 = cur.n1 === null ? acc.n1 : acc.n1 + Number.parseInt(cur.n1)
+          let n2 = cur.n2 === null ? acc.n2 : acc.n2 + Number.parseInt(cur.n2)
+          let agi = cur.agi === null ? acc.agi : acc.agi + Number.parseInt(cur.agi)
+
+          return {n1: n1, n2: n2, agi: agi}
+        }, {n1: null, n2: null, agi: null})
+      })
+      .entries(data)
 
   /* *** set color scale *** */
   let color = d3.scaleQuantile()
     .range(colorSwatches[direction])
-    .domain(domainVals(nestedCountyData, direction, year, 'n1'))
+    .domain(munge.domainVals(nestedCountyData, direction, year, 'n1', fipsCounty))
 
   /* *** populate year selector *** */
-  let years = Object.keys(nestedCountyData[direction]).sort()
+  let years = nestedCountyData[0].values.map(d => d.key).sort()
   let yearSelector = document.getElementById('year-selector')
   yearSelector.max = years.length - 1
   yearSelector.value = years.length - 1
-  document.getElementById('selected-year').innerHTML = fullYear(years[years.length - 1])
+  document.getElementById('selected-year').innerHTML = munge.fullYear(years[years.length - 1])
 
-  /* *** populate state selector *** */
-  let states = Object.keys(chartData.charts.linechart[direction])
+  // /* *** populate state selector *** */
+  let states = nestedStateDataByYear[0].values.map(d => d.key).filter(d => d < 58)
   let stateSelector = d3.select('#stateyear')
   stateSelector.selectAll('.stateoptions')
     .data(states).enter().append('option')
       .attr('value', (d) => d)
-      .text((d) => d)
+      .text((d) => fipsMap.get(d))
 
   /* *** populate statistic info *** */
   let inflow = getTotalReturns('in', year)
   let outflow = getTotalReturns('out', year)
+  let nCounties = getNumCounties(direction, year)
   d3.select('#destination-counties')
-    .text(nestedCountyData[direction][year].length)
+    .text(nCounties)
   d3.select('#number-returns')
     .text(d3.format(',d')(inflow))
   d3.select('#net-flow')
     .text(d3.format(',d')(inflow - outflow))
 
   function getTotalReturns (direction, year) {
-    return nestedCountyData[direction][year].find(function (county) {
+    return munge.getDirectionYearValues(nestedCountyData, direction, year).find(function (county) {
       return county.id === '96000'
     }).n1
+  }
+
+  function getNumCounties (direction, year) {
+    return munge.getDirectionYearValues(nestedCountyData, direction, year).length
   }
 
   /* *** start map drawing *** */
@@ -142,7 +207,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   legendEl
     .attr('class', 'legendQuant')
     .attr('transform', 'translate(830,300)')
-  let legend = d3.legendColor()
+  let legend = d3Legend.legendColor()
     .labelFormat(d3.format(',d'))
     .title('')
     .titleWidth(100)
@@ -184,7 +249,8 @@ function initialDraw (error, data, chartData, us, counties, fips) {
    * @description Returns either the value for the record with id=geoid or null
    */
   function getVal (geoid, year, direction, stat = 'n1') {
-    let val = nestedCountyData[direction][year].find(el => el.id === geoid)
+    let val = munge.getDirectionYearValues(nestedCountyData, direction, year)
+      .find(el => el.id === geoid)
     return val === undefined ? null : val[stat]
   }
 
@@ -248,73 +314,77 @@ function initialDraw (error, data, chartData, us, counties, fips) {
   /* *** end map drawing *** */
 
   /* *** start draw the counties barchart *** */
-  let topCountyElement = dimple.newSvg('#rank-county', 960, 400)
-  var topCountyChart = new dimple.chart(topCountyElement, chartData.counties.n1[direction][year])
-  topCountyChart.setMargins(70, 30, 30, 150)
-  topCountyChart.addCategoryAxis('x', 'name').title = 'County'
-  let topCountyChartY = topCountyChart.addMeasureAxis('y', 'value')
-  topCountyChartY.title = statFullName['n1']
-  topCountyChartY.tickFormat = ',d'
-  // topCountyChart.defaultColors = [colorSwatches.chart[direction]]
-  topCountyChart.addSeries(null, dimple.plot.bar)
-  topCountyChart.draw()
+  let topCountyElement = d3.select('#rank-county')
+  let topCountyChart = barChart()
+    .margin({left: 70, top: 30, right: 30, bottom: 150})
+    .width(960)
+    .height(400)
+    .xProp('name')
+    .yProp('value')
+    .colorScale(color)
+    .yAxisLabel(statFullName['n1'])
+  topCountyElement
+    .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15))
+    .call(topCountyChart)
   /* *** end draw the counties barchart *** */
 
   /* *** start draw the out of state counties barchart *** */
-  let topCountyOutOfStateElement = dimple.newSvg('#rank-county-outofstate', 960, 400)
-  var topCountyOutOfStateChart = new dimple.chart(topCountyOutOfStateElement, chartData.counties.outOfState.n1[direction][year])
-  topCountyOutOfStateChart.setMargins(70, 30, 30, 150)
-  topCountyOutOfStateChart.addCategoryAxis('x', 'name').title = 'County'
-  let topCountyOutOfStateChartY = topCountyOutOfStateChart.addMeasureAxis('y', 'value')
-  topCountyOutOfStateChartY.title = statFullName['n1']
-  topCountyOutOfStateChartY.tickFormat = ',d'
-  // topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
-  topCountyOutOfStateChart.addSeries(null, dimple.plot.bar)
-  topCountyOutOfStateChart.draw()
+  let topCountyOutOfStateElement = d3.select('#rank-county-outofstate')
+  let topCountyOutOfStateChart = barChart()
+    .margin({left: 70, top: 30, right: 30, bottom: 150})
+    .width(960)
+    .height(400)
+    .xProp('name')
+    .yProp('value')
+    .colorScale(color)
+    .yAxisLabel(statFullName['n1'])
+  topCountyOutOfStateElement
+    .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15, null, true))
+    .call(topCountyOutOfStateChart)
   /* *** end draw the counties barchart *** */
 
   /* *** start draw the states barchart *** */
-  let topStateElement = dimple.newSvg('#rank-state', 960, 300)
-  var topStateChart = new dimple.chart(topStateElement, chartData.states.n1[direction][year].filter(function (d) {
-    return d.fips !== '06'
-  }))
-  topStateChart.setMargins(70, 30, 30, 50)
-  topStateChart.addCategoryAxis('x', 'name').title = 'State'
-  // let topStateChartY = topStateChart.addLogAxis('y', 'value')
-  let topStateChartY = topStateChart.addMeasureAxis('y', 'value')
-  topStateChartY.title = statFullName['n1']
-  topStateChartY.tickFormat = ',d'
-  // topStateChart.defaultColors = [colorSwatches.chart[direction]]
-  topStateChart.addSeries(null, dimple.plot.bar)
-  topStateChart.draw()
+  let topStateElement = d3.select('#rank-state')
+  let topStateChart = barChart()
+    .margin({left: 70, top: 30, right: 30, bottom: 50})
+    .width(960)
+    .height(300)
+    .xProp('name')
+    .yProp('value')
+    .colorScale(color)
+    .yAxisLabel(statFullName['n1'])
+  topStateElement
+    .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), 'n1', fipsMap, 15, '06'))
+    .call(topStateChart)
   /* *** end draw the states barchart *** */
 
   /* *** start draw the linechart *** */
-  let annualData = chartData.charts.linechart[direction].CA.map(function (d) {
-    return {year: d.year, value: d[document.getElementById('stat').value]}
+  let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, '06').map(function (d) {
+    return {year: d.key, value: d.value.n1}
   })
-  let annualElement = dimple.newSvg('#annual', 960, 400)
-  var annualChart = new dimple.chart(annualElement, annualData)
-  annualChart.setMargins(70, 0, 50, 40)
-  annualChart.addCategoryAxis('x', 'year').title = 'Year'
-  let annualChartY = annualChart.addAxis('y', 'value')
-  annualChartY.title = statFullName['n1']
-  annualChartY.tickFormat = ',d'
-  annualChart.addSeries(null, dimple.plot.line)
-  // annualChart.defaultColors = [colorSwatches.chart[direction]]
-  annualChart.draw()
+  let annualElement = d3.select('#annual')
+  let annualChart = lineGraph()
+    .margin({left: 70, top: 30, right: 30, bottom: 50})
+    .width(960)
+    .height(400)
+    .xProp('year')
+    .yProp('value')
+    .color(color.range()[5])
+  annualElement
+    .datum(annualData)
+    .call(annualChart)
   /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
-  stateSelector.on('change', function () {
-    let stat = document.getElementById('stat').value
-    annualChart.data = chartData.charts.linechart[direction][this.value].map(function (d) {
-      return {year: d.year, value: d[stat]}
-    })
-    annualChart.draw()
-  })
+  // stateSelector.on('change', function () {
+  //   let stat = document.getElementById('stat').value
+  //   annualChart.data = chartData.charts.linechart[direction][this.value].map(function (d) {
+  //     return {year: d.year, value: d[stat]}
+  //   })
+  //   annualChart.draw()
+  // })
   yearSelector.addEventListener('change', function () {
-    document.getElementById('selected-year').innerHTML = fullYear(years[this.value])
+    document.getElementById('selected-year').innerHTML = munge.fullYear(years[this.value])
     changeInput(years[this.value], null, null)
   })
   document.getElementById('direction').addEventListener('change', function () {
@@ -326,7 +396,7 @@ function initialDraw (error, data, chartData, us, counties, fips) {
 
   function changeInput (year, direction, stat) {
     let nostateupdate = false
-    if (year) { nostateupdate = true }
+    // if (year) { nostateupdate = true }
     year = year || years[yearSelector.value]
     direction = direction || document.querySelector('#direction').value
     stat = stat || document.querySelector('#stat').value
@@ -339,10 +409,10 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     d3.select('#net-flow')
       .text(d3.format(',d')(inflow - outflow))
     d3.select('#destination-counties')
-      .text(nestedCountyData[direction][year].length)
+      .text(getNumCounties(direction, year))
 
     color
-      .domain(domainVals(nestedCountyData, direction, year, stat))
+      .domain(munge.domainVals(nestedCountyData, direction, year, stat, fipsCounty))
       .range(colorSwatches[direction])
 
     countymapel.selectAll('path')
@@ -356,69 +426,40 @@ function initialDraw (error, data, chartData, us, counties, fips) {
     mapSvg.select('.legendQuant')
       .call(legend)
 
-    // topCountyChart.defaultColors = [colorSwatches.chart[direction]] // use colorScale instead of defaultColors?
-    topCountyChart.data = chartData.counties[stat][direction][year]
-    topCountyChartY.title = statFullName[stat]
-    topCountyChart.draw()
+    let addlProp = stat === 'meanAgi' ? function (d) {
+      d.meanAgi = +d.agi / +d.n1
+      return d
+    } : null
 
-    topStateChart.data = chartData.states[stat][direction][year].filter(function (d) {
-      return d.fips !== '06'
-    })
-    // topStateChart.defaultColors = [colorSwatches.chart[direction]]
-    topStateChartY.title = statFullName[stat]
-    topStateChart.draw()
+    topCountyChart.colorScale(color).yAxisLabel(statFullName[stat])
+    topCountyOutOfStateChart.colorScale(color).yAxisLabel(statFullName[stat])
+    topStateChart.colorScale(color).yAxisLabel(statFullName[stat])
 
-    topCountyOutOfStateChart.data = chartData.counties.outOfState[stat][direction][year]
-    // topCountyOutOfStateChart.defaultColors = [colorSwatches.chart[direction]]
-    topCountyOutOfStateChartY.title = statFullName[stat]
-    topCountyOutOfStateChart.draw()
+    topCountyElement
+        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, addlProp))
+        .call(topCountyChart)
+    topCountyOutOfStateElement
+        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, addlProp, true))
+        .call(topCountyOutOfStateChart)
+    topStateElement
+        .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), stat, fipsMap, 15, '06', addlProp))
+        .call(topStateChart)
 
     if (!nostateupdate) {
-      annualChart.data = chartData.charts.linechart[direction][state].map(function (d) {
-        return {year: d.year, value: d[stat]}
+      // TODO: addlProp for state data
+      // TODO: years as number to years as category
+      let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, state).map(function (d) {
+        return {year: d.key, value: d.value[stat]}
       })
-      annualChartY.title = statFullName[stat]
-      // annualChart.defaultColors = [colorSwatches.chart[direction]]
-      annualChart.draw()
+      annualChart
+        .color(color.range()[5])
+      annualElement
+        .datum(annualData)
+        .call(annualChart)
     }
   }
   /* *** end page interaction handlers *** */
 } /* *** end initialDraw *** */
-
-/*******************************************************************************
-        data munge helper functions
-*******************************************************************************/
-/** @function domainVals
- * @param {object} data - nestedCountyData
- * @param {string} direction - 'in'||'out'
- * @param {string} year - one of ['0405', ..., '1415']
- * @param {string} stat - one of ['n1', 'n2', 'agi', 'meanAgi']
- * @returns {array} array of stat values for the data in that direction & year
- */
-function domainVals (data, direction, year, stat) {
-  return data[direction][year].map(d => (d.y1_statefips < 58 && d.id !== fipsCounty && d[stat] !== '-1') ? +d[stat] : null)
-}
-
-/** @function inOrOut
- * @param { object } d - d3.csvParse'd row of data from `000000combined.csv` file
- * @returns { string } 'in' or 'out', meaning 'immigration into' or
- * 'emigration out of' the county of interest
- */
-function inOrOut (d) {
-  return d.id === `${d.y1_statefips}${d.y1_countyfips}` ? 'in' : 'out'
-}
-
-/** @function fullYear
- * @param { string } d - ex: '0405'
- * @returns { string } - ex: '2004-2005'
- * @description formats 2digit/2years string into 4digit/2years with hyphen
- */
-function fullYear (d) {
-  let res = /(\d{2})(\d{2})/.exec(d)
-  res[1] = res[1] > 79 ? `19${res[1]}` : `20${res[1]}`
-  res[2] = res[2] > 79 ? `19${res[2]}` : `20${res[2]}`
-  return `${res[1]}-${res[2]}`
-}
 
 let statFullName = {
   n1: 'Number of Returns',
