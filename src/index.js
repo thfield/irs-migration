@@ -17,7 +17,7 @@ import lineGraph from '../charts/line-graph.js'
 
 let fipsCounty = '06075'
 let year = '1415'
-let direction = document.querySelector('#direction').value
+let direction = 'in'
 
 let colorSwatches = {
   in: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#006d2c', '#00441b'],
@@ -146,12 +146,15 @@ function initialDraw (error, data, us, counties, fips) {
     .range(colorSwatches[direction])
     .domain(munge.domainVals(nestedCountyData, direction, year, 'n1', fipsCounty))
 
+  let directionSelector = document.querySelector('#direction')
+  let statSelector = document.querySelector('#stat')
+  let selectedYear = document.getElementById('selected-year')
   /* *** populate year selector *** */
   let years = nestedCountyData[0].values.map(d => d.key).sort()
   let yearSelector = document.getElementById('year-selector')
   yearSelector.max = years.length - 1
   yearSelector.value = years.length - 1
-  document.getElementById('selected-year').innerHTML = munge.fullYear(years[years.length - 1])
+  selectedYear.innerHTML = munge.fullYear(years[years.length - 1])
 
   // /* *** populate state selector *** */
   let states = nestedStateDataByYear[0].values.map(d => d.key).filter(d => d < 58)
@@ -248,13 +251,21 @@ function initialDraw (error, data, us, counties, fips) {
   }
 
   /* *** tooltip handler functions *** */
+
+  /** @function ttOver
+   * handler for map interaction on mouseover event, attached to county lineshapes
+   */
   function ttOver (d) {
     d3.select(this).classed('highlight', true)
   }
+
+  /** @function ttMove
+   * handler for map interaction on mousemove event, attached to county lineshapes
+   */
   function ttMove (d) {
-    let year = years[document.getElementById('year-selector').value]
-    let direction = document.getElementById('direction').value
-    let stat = document.getElementById('stat').value
+    let year = years[yearSelector.value]
+    let direction = directionSelector.value
+    let stat = statSelector.value
     let val = getVal(d.properties.geoid, year, direction, stat)
     tooltip
         .style('left', d3.event.pageX - 50 + 'px')
@@ -262,12 +273,22 @@ function initialDraw (error, data, us, counties, fips) {
         .style('display', 'inline-block')
         .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span>`)
   }
+
+  /** @function ttOut
+   * handler for map interaction on mouseout event, attached to county lineshapes
+   */
   function ttOut (d) {
     tooltip.style('display', 'none')
     d3.select(this).classed('highlight', false)
   }
 
   /* *** zooming functions *** */
+
+  /** @function clicked
+   * handler function for clicking on county lineshape:
+   * zooms in on county on initial click,
+   * resets zoom when clicked on same county
+   */
   function clicked (d) {
     if (active.node() === this) return reset()
     active.classed('active', false)
@@ -288,6 +309,9 @@ function initialDraw (error, data, us, counties, fips) {
       .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
   }
 
+  /** @function reset
+   * handler function for resetting zoom, called by clicked()
+   */
   function reset () {
     active.classed('active', false)
     active = d3.select(null)
@@ -296,11 +320,17 @@ function initialDraw (error, data, us, counties, fips) {
         .call(zoom.transform, d3.zoomIdentity) // updated for d3 v4
   }
 
+  /** @function zoomed
+ * handler function for mouse scrollwheel zooming
+ */
   function zoomed () {
     mapEls.style('stroke-width', 1.5 / d3.event.transform.k + 'px')
     mapEls.attr('transform', d3.event.transform)
   }
 
+  /** @function stopped
+   * stops zooming on mouse click
+   */
   function stopped () {
     if (d3.event.defaultPrevented) d3.event.stopPropagation()
   }
@@ -374,26 +404,27 @@ function initialDraw (error, data, us, counties, fips) {
 
   /* *** begin page interaction handlers *** */
   stateSelector.on('change', function () {
-    let stat = document.getElementById('stat').value
-    updateAnnualChart(year, direction, stat)
+    updateAnnualChart()
   })
   yearSelector.addEventListener('change', function () {
-    document.getElementById('selected-year').innerHTML = munge.fullYear(years[this.value])
-    changeInput(years[this.value], null, null)
+    selectedYear.innerHTML = munge.fullYear(years[this.value])
+    changeInput(true)
   })
-  document.getElementById('direction').addEventListener('change', function () {
-    changeInput(null, this.value, null)
+  directionSelector.addEventListener('change', function () {
+    changeInput()
   })
-  document.getElementById('stat').addEventListener('change', function () {
-    changeInput(null, null, this.value)
+  statSelector.addEventListener('change', function () {
+    changeInput()
   })
 
-  function changeInput (year, direction, stat) {
-    let nostateupdate = false
-    // if (year) { nostateupdate = true }
-    year = year || years[yearSelector.value]
-    direction = direction || document.querySelector('#direction').value
-    stat = stat || document.querySelector('#stat').value
+  /** @function changeInput
+   * handle a change in any of the imput controls
+   * @param {boolean} yearUpdate - is what's being updated the year?
+   */
+  function changeInput (yearUpdate = false) {
+    let year = years[yearSelector.value]
+    let direction = directionSelector.value
+    let stat = statSelector.value
 
     let inflow = getTotalReturns('in', year)
     let outflow = getTotalReturns('out', year)
@@ -433,24 +464,26 @@ function initialDraw (error, data, us, counties, fips) {
         .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), stat, fipsMap, 15, '06'))
         .call(topStateChart)
 
-    if (!nostateupdate) {
+    if (!yearUpdate) {
       updateAnnualChart(year, direction, stat)
     }
   }
 
+  /** @function updateAnnualChart
+   * update the annual line chart using settings read from the page
+   */
   function updateAnnualChart (year, direction, stat) {
     year = year || years[yearSelector.value]
-    direction = direction || document.querySelector('#direction').value
-    stat = stat || document.querySelector('#stat').value
+    direction = direction || directionSelector.value
+    stat = stat || statSelector.value
 
     let state = document.querySelector('#stateyear').value
-    // TODO: years as number to years as category
     let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, state)
       .map(function (d) {
-        return {year: d.key, value: d.value[stat]}
+        return {short: d.key, year: munge.fullYear(d.key), value: d.value[stat]}
       })
       .sort(function (a, b) {
-        return a.year - b.year
+        return a.short - b.short
       })
     annualChart
       .color(color.range()[5])

@@ -163,6 +163,8 @@ function getNestedIndex (data, value, key = 'key') {
  * @returns {array} "values" array
  */
 function getDirectionYearValues (data, direction, year) {
+  // TODO: refactor this function to be "getNestedValue()",
+  //  use spread/recursion to find data in nested structure up to N levels deep
   let directionIndex = getNestedIndex(data, direction)
   let yearIndex = getNestedIndex(data[directionIndex].values, year)
   return data[directionIndex].values[yearIndex].values
