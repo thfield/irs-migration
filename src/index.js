@@ -6,6 +6,7 @@ import * as topojson from 'topojson'
 import * as munge from './munge.js'
 import barChart from '../charts/bar-chart.js'
 import lineGraph from '../charts/line-graph.js'
+import * as mapping from './mapping.js'
 
 // TODO: tree-shake d3 dependencies
 // TODO: better state management
@@ -145,6 +146,9 @@ function initialDraw (error, data, us, counties, fips) {
   let color = d3.scaleQuantile()
     .range(colorSwatches[direction])
     .domain(munge.domainVals(nestedCountyData, direction, year, 'n1', fipsCounty))
+  let radii = d3.scaleQuantile()
+    .range([0, 2, 4, 6, 8, 10, 12, 15, 20, 25])
+    .domain(color.domain())
 
   let directionSelector = document.querySelector('#direction')
   let statSelector = document.querySelector('#stat')
@@ -218,14 +222,14 @@ function initialDraw (error, data, us, counties, fips) {
   countymapel.selectAll('path')
       .data(topojson.feature(counties, counties.objects.counties).features)
       .enter().append('path')
+        .attr('d', path)
         .attr('stroke', '#fff')
-        // .attr('stroke-width', 0.5)
         .attr('fill', function (d) {
           let num = getVal(d.properties.geoid, year, direction)
           return num === null ? '#fff' : color(num)
         })
         .attr('id', function (d) { return d.geoid })
-        .attr('d', path)
+        .attr('class', 'county')
         .on('mouseover', ttOver)
         .on('mousemove', ttMove)
         .on('mouseout', ttOut)
@@ -403,6 +407,24 @@ function initialDraw (error, data, us, counties, fips) {
   /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
+  document.getElementById('drawCircles').addEventListener('change', toCircles)
+  function toCircles () {
+    let stat = statSelector.value
+    countymapel.selectAll('path.county')
+      .attr('d', function (d, i) {
+        let param = getVal(d.properties.geoid, year, direction, stat)
+        return mapping.circle(d.properties.center, radii(param))
+      })
+      .attr('opacity', 0.8)
+  }
+
+  document.getElementById('drawShape').addEventListener('change', toPaths)
+  function toPaths () {
+    countymapel.selectAll('path.county')
+      .attr('d', path)
+      .attr('opacity', 1)
+  }
+
   stateSelector.on('change', function () {
     updateAnnualChart()
   })

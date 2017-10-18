@@ -191,4 +191,12 @@ function fullYear (d) {
   return `${res[1]}-${res[2]}`
 }
 
-export {dataTopNCounties, dataTopNStates, targetFips, domainVals, getDirectionYearValues, inOrOut, fullYear}
+module.exports = {
+  dataTopNCounties: dataTopNCounties,
+  dataTopNStates: dataTopNStates,
+  targetFips: targetFips,
+  domainVals: domainVals,
+  getDirectionYearValues: getDirectionYearValues,
+  inOrOut: inOrOut,
+  fullYear: fullYear
+}
