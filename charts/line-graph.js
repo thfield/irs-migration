@@ -27,10 +27,17 @@ export default function lineGraph () {
   function chart (selection) {
     selection.each(function (data) {
       /* data is expected to be an array of objects like: {x:num, y:num, id:str} where id is optional */
-
-      // Update the x-scale.
-      x.domain(d3.extent(data, function (d) { return d[xProp] }))
-       .range([0, width - margin.left - margin.right])
+      // if (false) {
+      if (typeof data[0][xProp] !== 'number') {
+        x = d3.scaleBand()
+        x.domain(data.map(function (d) { return d[xProp] }))
+        xAxis.scale(x).tickSize(0)
+        x.range([0, width - margin.left - margin.right])
+      } else {
+        // Update the x-scale.
+        x.domain(d3.extent(data, function (d) { return d[xProp] }))
+        x.range([0, width - margin.left - margin.right])
+      }
 
       // Update the y-scale.
       y.domain(d3.extent(data, function (d) { return d[yProp] }))
@@ -54,6 +61,7 @@ export default function lineGraph () {
       gEnter.select('.line')
           .attr('d', linepath)
           .attr('stroke', color)
+          .attr('transform', 'translate(' + 45 + ',0)') // TODO: translate along x axis if using scaleBand
 
       // Update the x-axis.
       gEnter.select('.x.axis')

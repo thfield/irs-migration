@@ -9,14 +9,9 @@ import barChart from '../charts/bar-chart.js'
 import lineGraph from '../charts/line-graph.js'
 
 // TODO: better state management
-// TODO: get dimple & webpack working correctly
 // TODO: county lineshapes transition to circles
 // TODO: net flow in-out
 // TODO: state flow: in, out, delta
-// TODO: change chart colors on im/em-igrate direction change
-// TODO: dimple doesn't seem to handle elements in selection.exit() properly
-//     - barchars throw `Error: <rect> attribute x: Expected length, "NaN".` on redraw
-//     - linechart throws `Uncaught DOMException: Failed to execute 'querySelectorAll' on 'Element'`
 // TODO: use miso for data grouping? http://misoproject.com/dataset/
 //     -re-munge data to contain column 'direction' = in||out
 
@@ -28,11 +23,6 @@ let colorSwatches = {
   in: ['#f7fcf5', '#e5f5e0', '#c7e9c0', '#a1d99b', '#74c476', '#41ab5d', '#238b45', '#006d2c', '#00441b'],
   out: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d']
 }
-
-// colorSwatches.chart = {
-//   in: new dimple.color(colorSwatches.in[6]),
-//   out: new dimple.color(colorSwatches.out[6])
-// }
 
 let path = '../data'
 // let path = '.'
@@ -112,9 +102,10 @@ function initialDraw (error, data, us, counties, fips) {
           let n1 = cur.n1 === null ? acc.n1 : acc.n1 + Number.parseInt(cur.n1)
           let n2 = cur.n2 === null ? acc.n2 : acc.n2 + Number.parseInt(cur.n2)
           let agi = cur.agi === null ? acc.agi : acc.agi + Number.parseInt(cur.agi)
+          let meanAgi = cur.meanAgi === null ? acc.meanAgi : acc.meanAgi + Number.parseInt(cur.meanAgi)
 
-          return {n1: n1, n2: n2, agi: agi}
-        }, {n1: null, n2: null, agi: null})
+          return {n1: n1, n2: n2, agi: agi, meanAgi: meanAgi}
+        }, {n1: null, n2: null, agi: null, meanAgi: null})
       })
       .entries(data)
 
@@ -142,9 +133,10 @@ function initialDraw (error, data, us, counties, fips) {
           let n1 = cur.n1 === null ? acc.n1 : acc.n1 + Number.parseInt(cur.n1)
           let n2 = cur.n2 === null ? acc.n2 : acc.n2 + Number.parseInt(cur.n2)
           let agi = cur.agi === null ? acc.agi : acc.agi + Number.parseInt(cur.agi)
+          let meanAgi = cur.meanAgi === null ? acc.meanAgi : acc.meanAgi + Number.parseInt(cur.meanAgi)
 
-          return {n1: n1, n2: n2, agi: agi}
-        }, {n1: null, n2: null, agi: null})
+          return {n1: n1, n2: n2, agi: agi, meanAgi: meanAgi}
+        }, {n1: null, n2: null, agi: null, meanAgi: null})
       })
       .entries(data)
 
@@ -359,9 +351,13 @@ function initialDraw (error, data, us, counties, fips) {
   /* *** end draw the states barchart *** */
 
   /* *** start draw the linechart *** */
-  let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, '06').map(function (d) {
-    return {year: d.key, value: d.value.n1}
-  })
+  let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, '06')
+    .map(function (d) {
+      return {short: d.key, year: munge.fullYear(d.key), value: d.value.n1}
+    })
+    .sort(function (a, b) {
+      return a.short - b.short
+    })
   let annualElement = d3.select('#annual')
   let annualChart = lineGraph()
     .margin({left: 70, top: 30, right: 30, bottom: 50})
@@ -376,13 +372,10 @@ function initialDraw (error, data, us, counties, fips) {
   /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
-  // stateSelector.on('change', function () {
-  //   let stat = document.getElementById('stat').value
-  //   annualChart.data = chartData.charts.linechart[direction][this.value].map(function (d) {
-  //     return {year: d.year, value: d[stat]}
-  //   })
-  //   annualChart.draw()
-  // })
+  stateSelector.on('change', function () {
+    let stat = document.getElementById('stat').value
+    updateAnnualChart(year, direction, stat)
+  })
   yearSelector.addEventListener('change', function () {
     document.getElementById('selected-year').innerHTML = munge.fullYear(years[this.value])
     changeInput(years[this.value], null, null)
@@ -400,7 +393,6 @@ function initialDraw (error, data, us, counties, fips) {
     year = year || years[yearSelector.value]
     direction = direction || document.querySelector('#direction').value
     stat = stat || document.querySelector('#stat').value
-    let state = document.querySelector('#stateyear').value
 
     let inflow = getTotalReturns('in', year)
     let outflow = getTotalReturns('out', year)
@@ -426,38 +418,46 @@ function initialDraw (error, data, us, counties, fips) {
     mapSvg.select('.legendQuant')
       .call(legend)
 
-    let addlProp = stat === 'meanAgi' ? function (d) {
-      d.meanAgi = +d.agi / +d.n1
-      return d
-    } : null
-
     topCountyChart.colorScale(color).yAxisLabel(statFullName[stat])
     topCountyOutOfStateChart.colorScale(color).yAxisLabel(statFullName[stat])
     topStateChart.colorScale(color).yAxisLabel(statFullName[stat])
 
     topCountyElement
-        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, addlProp))
+        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, null))
         .call(topCountyChart)
     topCountyOutOfStateElement
-        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, addlProp, true))
+        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, null, true))
         .call(topCountyOutOfStateChart)
     topStateElement
-        .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), stat, fipsMap, 15, '06', addlProp))
+        .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), stat, fipsMap, 15, '06'))
         .call(topStateChart)
 
     if (!nostateupdate) {
-      // TODO: addlProp for state data
-      // TODO: years as number to years as category
-      let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, state).map(function (d) {
-        return {year: d.key, value: d.value[stat]}
-      })
-      annualChart
-        .color(color.range()[5])
-      annualElement
-        .datum(annualData)
-        .call(annualChart)
+      updateAnnualChart(year, direction, stat)
     }
   }
+
+  function updateAnnualChart (year, direction, stat) {
+    year = year || years[yearSelector.value]
+    direction = direction || document.querySelector('#direction').value
+    stat = stat || document.querySelector('#stat').value
+
+    let state = document.querySelector('#stateyear').value
+    // TODO: years as number to years as category
+    let annualData = munge.getDirectionYearValues(nestedStateDataByYear, direction, state)
+      .map(function (d) {
+        return {year: d.key, value: d.value[stat]}
+      })
+      .sort(function (a, b) {
+        return a.year - b.year
+      })
+    annualChart
+      .color(color.range()[5])
+    annualElement
+      .datum(annualData)
+      .call(annualChart)
+  }
+
   /* *** end page interaction handlers *** */
 } /* *** end initialDraw *** */
 
