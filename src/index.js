@@ -4,10 +4,10 @@ import 'd3-queue'
 import * as d3Legend from 'd3-svg-legend'
 import * as topojson from 'topojson'
 import * as munge from './munge.js'
-// import {dimple} from 'dimple'
 import barChart from '../charts/bar-chart.js'
 import lineGraph from '../charts/line-graph.js'
 
+// TODO: tree-shake d3 dependencies
 // TODO: better state management
 // TODO: county lineshapes transition to circles
 // TODO: net flow in-out
@@ -24,6 +24,7 @@ let colorSwatches = {
   out: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d']
 }
 
+// switch path to build prod version
 let path = '../data'
 // let path = '.'
 let dataPath = `${path}/${fipsCounty}/${fipsCounty}combined.csv`

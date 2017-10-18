@@ -13,7 +13,8 @@
     "get-data": "./download.sh",
     "atlas": "cp node_modules/us-atlas/us/10m.json data/geo",
     "munge": "munge/geo.sh && munge/parse-county.sh",
-    "build": "webpack",
+    "build": "webpack --config webpack.prod.js",
+    "builddev": "webpack",
     "watch": "webpack --watch",
     "start": "webpack-dev-server --open"
   },
@@ -36,7 +37,8 @@
     "uglifyjs-webpack-plugin": "^0.4.6",
     "us-atlas": "^1.0.2",
     "webpack": "^3.5.5",
-    "webpack-dev-server": "^2.7.1"
+    "webpack-dev-server": "^2.7.1",
+    "webpack-merge": "^4.1.0"
   },
   "dependencies": {
     "d3": "^4.10.2",

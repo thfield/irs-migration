@@ -44,26 +44,25 @@ Say, Manhattan (FIPS code 36 061):
 
 ## TODO
 - TODO in `download.sh` having to do with character encoding conversion
-- separate build dev/dist webpack functionality
 - change color scale to some sort of threshold scale (automatic)
-- better mouseover tooltip
 - connect centroids with lines
-- zoom map
 - use circles on map instead of coloring counties
   - enter/exit morph between circle and county path
-- line chart of total immigration/emigration year-to-year
 - bumps chart of top (10? 20?) counties year-to-year
 - barchart of migration by state
   - sankey/sunburst/tree? (county-> state-> sf)
 - select county to compare over time
-- allow user to choose different year
 - combine gif-munge and gif-create into single node script?
 - note: 06075inflowcombined.csv has duplicate rows for cook county IL
 
 ### Done
 - command line generation of map
   - see `munge/gif-munge.js` and `munge/gif-create.sh`
-
+- separate build dev/dist webpack functionality
+- better mouseover tooltip
+- zoom map
+- line chart of total immigration/emigration year-to-year
+- allow user to choose different year
 
 
 ## FIPS ref

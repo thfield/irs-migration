@@ -1,7 +1,6 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 
 module.exports = {
   entry: {
@@ -17,8 +16,7 @@ module.exports = {
       filename: 'index.html',
       template: 'src/index.ejs',
       chunks: ['app']
-    }),
-    // new UglifyJSPlugin()
+    })
   ],
   devtool: 'inline-source-map',
   devServer: {
@@ -32,17 +30,17 @@ module.exports = {
         use: {
           loader: 'babel-loader',
           options: {
-           presets: ['babel-preset-env']
+            presets: ['babel-preset-env']
           }
         }
-      },{
+      }, {
         test: /\.css$/,
         exclude: /(node_modules|bower_components)/,
         use: [
           'style-loader',
           'css-loader'
         ]
-      },{
+      }, {
         test: /\.(html)$/,
         use: [{
           loader: 'html-loader',
@@ -50,13 +48,13 @@ module.exports = {
             // attrs: [':data-src']
           }
         }]
-      },{
-         test: /\.(png|svg|jpg|gif)$/,
-         exclude: /(node_modules|bower_components)/,
-         use: [
-           'file-loader'
-         ]
-       }
+      }, {
+        test: /\.(png|svg|jpg|gif)$/,
+        exclude: /(node_modules|bower_components)/,
+        use: [
+          'file-loader'
+        ]
+      }
     ]
   }
-};
+}
