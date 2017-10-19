@@ -460,12 +460,25 @@ function initialDraw (error, data, us, counties, fips) {
     color
       .domain(munge.domainVals(nestedCountyData, direction, year, stat, fipsCounty))
       .range(colorSwatches[direction])
+    radii.domain(color.domain())
 
-    countymapel.selectAll('path')
-      .attr('fill', function (d) {
-        let num = getVal(d.properties.geoid, year, direction, stat)
-        return num === null ? '#fff' : color(num)
-      })
+    if (document.getElementById('drawCircles').checked) {
+      countymapel.selectAll('path')
+        .attr('fill', function (d) {
+          let num = getVal(d.properties.geoid, year, direction, stat)
+          return num === null ? '#fff' : color(num)
+        })
+        .attr('d', function (d, i) {
+          let param = getVal(d.properties.geoid, year, direction, stat)
+          return mapping.circle(d.properties.center, radii(param))
+        })
+    } else {
+      countymapel.selectAll('path')
+        .attr('fill', function (d) {
+          let num = getVal(d.properties.geoid, year, direction, stat)
+          return num === null ? '#fff' : color(num)
+        })
+    }
 
     mapSvg.select('.legendCells').remove() // update doesn't seem to call a color change on the legend
     legend.scale(color)
