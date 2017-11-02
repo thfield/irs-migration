@@ -25,6 +25,13 @@ let colorSwatches = {
   out: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d']
 }
 
+let statFullName = {
+  n1: 'Number of Returns',
+  n2: 'Number of Exemptions',
+  agi: 'Total Adjusted Gross Income',
+  meanAgi: 'Mean Adjusted Gross Income'
+}
+
 // switch path to build prod version
 let path = '../data'
 // let path = '.'
@@ -349,7 +356,7 @@ function initialDraw (error, data, us, counties, fips) {
     .xProp('name')
     .yProp('value')
     .colorScale(color)
-    .yAxisLabel(statFullName['n1'])
+    .yAxisLabel('Number of Returns')
   topCountyElement
     .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15))
     .call(topCountyChart)
@@ -364,7 +371,7 @@ function initialDraw (error, data, us, counties, fips) {
     .xProp('name')
     .yProp('value')
     .colorScale(color)
-    .yAxisLabel(statFullName['n1'])
+    .yAxisLabel(statFullName.n1)
   topCountyOutOfStateElement
     .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15, null, true))
     .call(topCountyOutOfStateChart)
@@ -379,7 +386,7 @@ function initialDraw (error, data, us, counties, fips) {
     .xProp('name')
     .yProp('value')
     .colorScale(color)
-    .yAxisLabel(statFullName['n1'])
+    .yAxisLabel(statFullName.n1)
   topStateElement
     .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), 'n1', fipsMap, 15, '06'))
     .call(topStateChart)
@@ -407,23 +414,26 @@ function initialDraw (error, data, us, counties, fips) {
   /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
-  document.getElementById('drawCircles').addEventListener('change', toCircles)
-  function toCircles () {
+
+  /* change paths on map to circles */
+  document.getElementById('drawCircles').addEventListener('change', function () {
     let stat = statSelector.value
+    let year = years[yearSelector.value]
+    let direction = directionSelector.value
     countymapel.selectAll('path.county')
       .attr('d', function (d, i) {
         let param = getVal(d.properties.geoid, year, direction, stat)
         return mapping.circle(d.properties.center, radii(param))
       })
       .attr('opacity', 0.8)
-  }
+  })
 
-  document.getElementById('drawShape').addEventListener('change', toPaths)
-  function toPaths () {
+  /* change circles on map to paths */
+  document.getElementById('drawShape').addEventListener('change', function () {
     countymapel.selectAll('path.county')
       .attr('d', path)
       .attr('opacity', 1)
-  }
+  })
 
   stateSelector.on('change', function () {
     updateAnnualChart()
@@ -502,7 +512,7 @@ function initialDraw (error, data, us, counties, fips) {
     if (!yearUpdate) {
       updateAnnualChart(year, direction, stat)
     }
-  }
+  } /* *** end changeInput() *** */
 
   /** @function updateAnnualChart
    * update the annual line chart using settings read from the page
@@ -529,10 +539,3 @@ function initialDraw (error, data, us, counties, fips) {
 
   /* *** end page interaction handlers *** */
 } /* *** end initialDraw *** */
-
-let statFullName = {
-  n1: 'Number of Returns',
-  n2: 'Number of Exemptions',
-  agi: 'Total Adjusted Gross Income',
-  meanAgi: 'Mean Adjusted Gross Income'
-}

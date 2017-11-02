@@ -62,8 +62,8 @@ export default function barChart () {
       .merge(bars)
           .attr('x', function (d) { return x(d[xProp]) })
           .attr('width', x.bandwidth())
-          .attr('y', function (d) { return y(0) })
-          .attr('height', function (d) { return height - margin.top - margin.bottom - y(0) })
+          // .attr('y', function (d) { return y(0) })
+          // .attr('height', function (d) { return height - margin.top - margin.bottom - y(0) })
           .attr('fill', function (d) { return d.color || color(d[yProp]) })
           // TODO: use defaultColor if color scale not set
         .transition(t)

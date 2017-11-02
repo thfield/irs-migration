@@ -9,6 +9,10 @@ https://www.irs.gov/statistics/soi-tax-stats-migration-data-2014-2015
 https://www.census.gov/topics/population/migration/guidance/county-to-county-migration-flows.html
 https://www.census.gov/topics/population/migration/data/tables.html
 
+census data
+  [2010-2016](https://www2.census.gov/programs-surveys/popest/datasets/2010-2016/counties/totals/co-est2016-alldata.csv)
+  [2000-2010](https://www2.census.gov/programs-surveys/popest/datasets/2000-2010/intercensal/county/co-est00int-tot.csv)
+
 ## command line dependencies
 - [node](https://nodejs.org/en/)
 - [npm](https://www.npmjs.com/)
