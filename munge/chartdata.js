@@ -2,6 +2,7 @@
 const fs = require('fs')
 const d3 = require('d3')
 const munge = require('../src/munge.js')
+const write = require('./utils/write')
 
 const stateFp = '06'
 const countyFp = '075'
@@ -191,19 +192,3 @@ let output = {
 }
 // write('../data/chartData.json', output)
 write('./foo/foo.json', topN1Counties)
-
-/** @function write
- * saves data to a file
- * @param { String } filename - path of file to write
- * @param { String } text - data to write: stringified if not type string
- */
-function write (filename, text) {
-   /* output the file */
-  if (typeof text !== 'string') text = JSON.stringify(text)
-  fs.writeFile(filename, text,
-    function (err) {
-      if (err) { return console.log(err) }
-      console.log('The file was saved as', filename)
-    }
-  )
-}

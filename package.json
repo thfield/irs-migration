@@ -12,7 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "get-data": "./download.sh",
     "atlas": "cp node_modules/us-atlas/us/10m.json data/geo",
-    "munge": "munge/geo.sh && munge/parse-county.sh && munge/population-data.sh",
+    "munge": "munge/population-data.sh && munge/geo.sh && munge/parse-county.sh",
     "build": "webpack --config webpack.prod.js",
     "builddev": "webpack",
     "watch": "webpack --watch",
