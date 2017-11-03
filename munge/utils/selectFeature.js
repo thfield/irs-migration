@@ -7,11 +7,11 @@ const turf = require('@turf/helpers')
  * @param {Object} featureCollection - geoJSON FeatureCollection
  */
 module.exports = (ids, idProp, featureCollection) => {
-  let chosenFeatures = ids.map(id=>{
-    return featureCollection.features.find(feature=>{
+  let chosenFeatures = ids.map(id => {
+    return featureCollection.features.find(feature => {
       return feature.properties[idProp] === id
     })
-  }).filter(feature=>{ return feature != null || feature != undefined })
+  }).filter(feature => { return feature != null || feature !== undefined })
 
   return turf.featureCollection(chosenFeatures)
 }
