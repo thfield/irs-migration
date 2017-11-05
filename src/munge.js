@@ -42,7 +42,8 @@ function dataTopNCounties (data, prop, fipsMap, n = 10, addProp, onlyOutOfState 
         id: data[i].id,
         n1: data[i].n1,
         n2: data[i].n2,
-        agi: data[i].agi
+        agi: data[i].agi,
+        pop: data[i].pop
       }
       if (prop) {
         res.value = +data[i][prop]

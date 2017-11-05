@@ -1,6 +1,8 @@
 'use strict'
 const fs = require('fs')
 const d3 = require('d3-dsv')
+const writeCsv = require('./write-csv')
+const h = require('./helpers')
 
 /** @function combineData
  * @param {string} st - state fips code
@@ -13,16 +15,12 @@ function combineData (st, co, years, path = '../data') {
   const fips = st.concat(co)
   // create file for combined data
   let combinedPath = `${path}/${fips}/${fips}combined.csv`
-  if (fs.existsSync(combinedPath)) {
-    // delete file if exists so it doesn't keep being appended to
-    fs.unlinkSync(combinedPath)
-  }
-  let combinedCsv = fs.createWriteStream(combinedPath)
-  let headers = 'year,id,y1_statefips,y1_countyfips,y2_statefips,y2_countyfips,n1,n2,agi\n'
-  combinedCsv.write(headers)
 
   // create Set for unique fips
   let focalFips = new Set()
+
+  let popData = d3.csvParse(fs.readFileSync(`${path}/population.csv`, 'utf8'))
+  let combinedData = []
 
   ;['inflow', 'outflow'].forEach(function (direction) {
     years.forEach(function (year) {
@@ -37,18 +35,30 @@ function combineData (st, co, years, path = '../data') {
           ? county.y2_statefips.concat(county.y2_countyfips)
           : county.y1_statefips.concat(county.y1_countyfips)
 
-        let convertedData = `${year},${id},${county.y1_statefips},${county.y1_countyfips},${county.y2_statefips},${county.y2_countyfips},${county.n1},${county.n2},${county.agi}\n`
-        combinedCsv.write(convertedData)
+        let pop = h.getPopData(id, h.fullYear(year), popData)
+
+        let countyData = {
+          id: id,
+          year: year,
+          y1_statefips: county.y1_statefips,
+          y1_countyfips: county.y1_countyfips,
+          y2_statefips: county.y2_statefips,
+          y2_countyfips: county.y2_countyfips,
+          n1: county.n1,
+          n2: county.n2,
+          agi: county.agi,
+          pop: pop
+        }
+
+        combinedData.push(countyData)
       })
     })
   })
+
+  writeCsv(combinedPath, combinedData)
+
   // change to Array because selectFeature() expects an array
   focalFips = Array.from(focalFips)
-
-  // close fileWriteStream
-  combinedCsv.end()
-  console.log(`File saved as ${combinedPath}`)
-
   return focalFips
 }
 

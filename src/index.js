@@ -7,6 +7,7 @@ import * as munge from './munge.js'
 import barChart from '../charts/bar-chart.js'
 import lineGraph from '../charts/line-graph.js'
 import * as mapping from './mapping.js'
+import {getPopData, fullYear} from '../munge/utils/helpers.js'
 
 // TODO: tree-shake d3 dependencies
 // TODO: better state management
@@ -275,14 +276,16 @@ function initialDraw (error, data, us, counties, fips) {
    */
   function ttMove (d) {
     let year = years[yearSelector.value]
+    let yr = fullYear(year)
     let direction = directionSelector.value
     let stat = statSelector.value
     let val = getVal(d.properties.geoid, year, direction, stat)
+    let pop = getVal(d.properties.geoid, year, direction, 'pop')
     tooltip
         .style('left', d3.event.pageX - 50 + 'px')
         .style('top', d3.event.pageY - 70 + 'px')
         .style('display', 'inline-block')
-        .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span>`)
+        .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span><br>Population in ${yr}: ${d3.format(',d')(pop)}`)
   }
 
   /** @function ttOut
@@ -348,6 +351,7 @@ function initialDraw (error, data, us, counties, fips) {
   /* *** end map drawing *** */
 
   /* *** start draw the counties barchart *** */
+  let topCountyData = munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15)
   let topCountyElement = d3.select('#rank-county')
   let topCountyChart = barChart()
     .margin({left: 70, top: 30, right: 30, bottom: 150})
@@ -358,11 +362,16 @@ function initialDraw (error, data, us, counties, fips) {
     .colorScale(color)
     .yAxisLabel('Number of Returns')
   topCountyElement
-    .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15))
+    .datum(topCountyData)
     .call(topCountyChart)
   /* *** end draw the counties barchart *** */
 
+  let topCountyPopAvgString = calcAvgCountyPop(topCountyData)
+  let topCountyPopAvgEl = d3.select('#avg-pop-county')
+  topCountyPopAvgEl.text(topCountyPopAvgString)
+
   /* *** start draw the out of state counties barchart *** */
+  let topCountyOutOfStateData = munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15, null, true)
   let topCountyOutOfStateElement = d3.select('#rank-county-outofstate')
   let topCountyOutOfStateChart = barChart()
     .margin({left: 70, top: 30, right: 30, bottom: 150})
@@ -373,11 +382,16 @@ function initialDraw (error, data, us, counties, fips) {
     .colorScale(color)
     .yAxisLabel(statFullName.n1)
   topCountyOutOfStateElement
-    .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), 'n1', fipsMap, 15, null, true))
+    .datum(topCountyOutOfStateData)
     .call(topCountyOutOfStateChart)
   /* *** end draw the counties barchart *** */
 
+  let topCountyOutOfStatePopAvgString = calcAvgCountyPop(topCountyOutOfStateData)
+  let topCountyOutOfStatePopAvgEl = d3.select('#avg-pop-county-out-of-state')
+  topCountyOutOfStatePopAvgEl.text(topCountyOutOfStatePopAvgString)
+
   /* *** start draw the states barchart *** */
+  let topStateData = munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), 'n1', fipsMap, 15, '06')
   let topStateElement = d3.select('#rank-state')
   let topStateChart = barChart()
     .margin({left: 70, top: 30, right: 30, bottom: 50})
@@ -388,7 +402,7 @@ function initialDraw (error, data, us, counties, fips) {
     .colorScale(color)
     .yAxisLabel(statFullName.n1)
   topStateElement
-    .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), 'n1', fipsMap, 15, '06'))
+    .datum(topStateData)
     .call(topStateChart)
   /* *** end draw the states barchart *** */
 
@@ -499,14 +513,23 @@ function initialDraw (error, data, us, counties, fips) {
     topCountyOutOfStateChart.colorScale(color).yAxisLabel(statFullName[stat])
     topStateChart.colorScale(color).yAxisLabel(statFullName[stat])
 
+    let topCountyData = munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, null)
     topCountyElement
-        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, null))
+        .datum(topCountyData)
         .call(topCountyChart)
+    let topCountyPopAvgString = calcAvgCountyPop(topCountyData)
+    topCountyPopAvgEl.text(topCountyPopAvgString)
+
+    let topCountyOutOfStateData = munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, null, true)
     topCountyOutOfStateElement
-        .datum(munge.dataTopNCounties(munge.getDirectionYearValues(nestedCountyData, direction, year), stat, fipsMap, 15, null, true))
+        .datum(topCountyOutOfStateData)
         .call(topCountyOutOfStateChart)
+    let topCountyOutOfStatePopAvgString = calcAvgCountyPop(topCountyOutOfStateData)
+    topCountyOutOfStatePopAvgEl.text(topCountyOutOfStatePopAvgString)
+
+    let topStateData = munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), stat, fipsMap, 15, '06')
     topStateElement
-        .datum(munge.dataTopNStates(munge.getDirectionYearValues(nestedStateData, direction, year), stat, fipsMap, 15, '06'))
+        .datum(topStateData)
         .call(topStateChart)
 
     if (!yearUpdate) {
@@ -535,6 +558,12 @@ function initialDraw (error, data, us, counties, fips) {
     annualElement
       .datum(annualData)
       .call(annualChart)
+  }
+
+  function calcAvgCountyPop (inputData) {
+    let result = inputData.reduce((acc, cur) => { return acc + +cur.pop }, 0)
+    result = result / inputData.length
+    return `Average population of the top counties: ${d3.format(',d')(result)}`
   }
 
   /* *** end page interaction handlers *** */
