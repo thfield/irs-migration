@@ -1,6 +1,8 @@
 # irs-migration
 
-Visualizing taxpayer migration data from the IRS
+Visualizing taxpayer migration data from the IRS.
+
+The IRS publishes data on migration patterns within the US based on changes in taxpayers' return addresses. For example, there were 3,220 people who filed taxes living in San Mateo, CA in 2014 who then filed taxes living in San Francisco, CA in 2015.  There are some caveats and nitty-gritty to the methodology, which can be found on the [IRS's website](https://www.irs.gov/statistics/soi-tax-stats-migration-data).  
 
 ## data source
 https://www.irs.gov/statistics/soi-tax-stats-migration-data  
@@ -50,9 +52,8 @@ Say, Manhattan (FIPS code 36 061):
 - TODO in `download.sh` having to do with character encoding conversion
 - change color scale to some sort of threshold scale (automatic)
 - connect centroids with lines
-- use circles on map instead of coloring counties
-  - enter/exit morph between circle and county path
 - bumps chart of top (10? 20?) counties year-to-year
+- enter/exit morph between circle and county path (too many counties to be reasonable?)
 - barchart of migration by state
   - sankey/sunburst/tree? (county-> state-> sf)
 - select county to compare over time
@@ -67,6 +68,7 @@ Say, Manhattan (FIPS code 36 061):
 - zoom map
 - line chart of total immigration/emigration year-to-year
 - allow user to choose different year
+- use circles on map instead of coloring counties
 
 
 ## FIPS ref

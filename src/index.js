@@ -10,10 +10,11 @@ import * as mapping from './mapping.js'
 import {fullYear} from '../munge/utils/helpers.js'
 import * as nesting from './nesting.js'
 
+// TODO: choose county to show historical migration - sinks/sources
 // TODO: tree-shake d3 dependencies
 // TODO: better state management
 // TODO: county lineshapes transition to circles
-// TODO: net flow in-out
+// TODO: net flow in-out annually
 // TODO: state flow: in, out, delta
 // TODO: use miso for data grouping? http://misoproject.com/dataset/
 //     -re-munge data to contain column 'direction' = in||out
@@ -212,11 +213,21 @@ function initialDraw (error, data, us, counties, fips) {
     let stat = statSelector.value
     let val = getVal(d.properties.geoid, year, direction, stat)
     let pop = getVal(d.properties.geoid, year, direction, 'pop')
+    // let n1 = (stat === 'n1') ? val : getVal(d.properties.geoid, year, direction, 'n1')
+    // let newbies = n1 / pop   // should get last year's pop 
+    pop = (pop === null) ? 'n/a' : d3.format(',d')(pop)
+    let htmlstring = `<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span><br>Population in ${yr}: ${pop}`
+    // if (newbies !== 0 && pop !== 'n/a') {
+    //   let wording = (direction === 'in')
+    //     ? '% of population now living in SF'
+    //     : '% of population newly moved from SF'
+    //   htmlstring += `<br>${wording}: ${d3.format('.3p')(newbies)}`
+    // }
     tooltip
         .style('left', d3.event.pageX - 50 + 'px')
-        .style('top', d3.event.pageY - 70 + 'px')
+        .style('top', d3.event.pageY - 100 + 'px')
         .style('display', 'inline-block')
-        .html(`<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span><br>Population in ${yr}: ${d3.format(',d')(pop)}`)
+        .html(htmlstring)
   }
 
   /** @function ttOut
