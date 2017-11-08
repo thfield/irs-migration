@@ -6,8 +6,8 @@ const d3 = require('d3-dsv')
 const path = '../data'
 
 const datafiles = [
-  `${path}/pop2000-2010.csv`,
-  `${path}/pop2010-2016.csv`
+  `${path}/raw-pop/pop2000-2010.csv`,
+  `${path}/raw-pop/pop2010-2016.csv`
 ]
 
 datafiles.forEach(function (d) {
@@ -41,13 +41,11 @@ datafiles.forEach(function (file) {
   data.forEach(function (county) {
     let fips = `${county.STATE}${county.COUNTY}`
     combinedData[fips] = combinedData[fips] || {}
-    let yearprops = Object.keys(county).filter(d => d.includes('POPESTIMATE'))
+    let yearprops = data.columns.filter(d => d.includes('POPESTIMATE'))
     yearprops.forEach(function (yearprop) {
       combinedData[fips][yearprop] = county[yearprop]
     })
   })
-  // delete files created by `population-data.sh`
-  fs.unlinkSync(file)
 })
 
 for (let co in combinedData) {
