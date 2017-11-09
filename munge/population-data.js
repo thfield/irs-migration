@@ -39,6 +39,7 @@ datafiles.forEach(function (file) {
   })
 
   data.forEach(function (county) {
+    if (county.COUNTY === '000') { return }
     let fips = `${county.STATE}${county.COUNTY}`
     combinedData[fips] = combinedData[fips] || {}
     let yearprops = data.columns.filter(d => d.includes('POPESTIMATE'))

@@ -26,7 +26,9 @@ do
   input="$path/raw/countyinflow$year.csv"
   output="$path/mongo/data$year.csv"
   head -1 $headerfile > $output
-  sed '1d' $input | sed 's/\"//g' >> $output
+  sed '1d; $d' $input | sed 's/\"//g' >> $output
+  # '1d; $d' removes the 1st and last lines
+  # first is the header, last is a duplicate blank line
 done
 
 # 0910 year has different formatting between in and out
