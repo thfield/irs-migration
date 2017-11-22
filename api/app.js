@@ -8,7 +8,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 var mongoDB = 'mongodb://localhost/irs';
-mongoose.connect(mongoDB)
+mongoose.connect(mongoDB, {useMongoClient: true})
   .then(() =>  console.log('connection succesful'))
   .catch((err) => console.error(err));
 
