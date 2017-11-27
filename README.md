@@ -51,6 +51,7 @@ Say, Manhattan (FIPS code 36 061):
 ## TODO
 - https://github.com/sequelize/express-example
   - http://docs.sequelizejs.com/manual/tutorial/models-definition.html
+  - https://scotch.io/tutorials/getting-started-with-node-express-and-postgres-using-sequelize
 - TODO in `download.sh` having to do with character encoding conversion
 - change color scale to some sort of threshold scale (automatic)
 - connect centroids with lines

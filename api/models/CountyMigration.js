@@ -1,17 +1,22 @@
-var mongoose = require('mongoose');
-
-var CountyMigration = new mongoose.Schema({
-  fipsIn: {type: String, index: true},
-  fipsOut: {type: String, index: true},
-  y1_statefips: String,
-  y1_countyfips: String,
-  y2_statefips: String,
-  y2_countyfips: String,
-  n1: Number,
-  n2: Number,
-  agi: Number,
-  year: {type: String, index: true},
-  updated_at: { type: Date, default: Date.now },
-});
-
-module.exports = mongoose.model('CountyMigration', CountyMigration);
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  var CountyMigration = sequelize.define('CountyMigration', {
+    fipsIn: DataTypes.STRING,
+    fipsOut: DataTypes.STRING,
+    y1_statefips: DataTypes.STRING,
+    y1_countyfips: DataTypes.STRING,
+    y2_statefips: DataTypes.STRING,
+    y2_countyfips: DataTypes.STRING,
+    n1: DataTypes.STRING,
+    n2: DataTypes.STRING,
+    agi: DataTypes.STRING,
+    year: DataTypes.STRING
+  }, {
+    classMethods: {
+      associate: function(models) {
+         CountyMigration.belongsTo(models.County)
+      }
+    }
+  });
+  return CountyMigration;
+};

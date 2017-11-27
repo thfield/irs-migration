@@ -1,13 +1,19 @@
-var mongoose = require('mongoose');
-
-var CountySchema = new mongoose.Schema({
-  fips: {type: String, index: true},
-  state: String,
-  statefp: String,
-  countyfp: String,
-  name: String,
-  type: String,
-  updated_at: { type: Date, default: Date.now },
-});
-
-module.exports = mongoose.model('County', CountySchema);
+'use strict';
+module.exports = (sequelize, DataTypes) => {
+  var County = sequelize.define('County', {
+    fips: DataTypes.STRING,
+    state: DataTypes.STRING,
+    statefp: DataTypes.STRING,
+    countyfp: DataTypes.STRING,
+    name: DataTypes.STRING,
+    type: DataTypes.STRING
+  }, {
+    classMethods: {
+      associate: function(models) {
+        County.hasMany(models.CountyMigration)
+        County.hasMany(models.CountyPop)
+      }
+    }
+  });
+  return County;
+};
