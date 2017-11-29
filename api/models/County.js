@@ -1,7 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   var County = sequelize.define('County', {
-    fips: DataTypes.STRING,
+    fips: { type: DataTypes.STRING, primaryKey: true },
     state: DataTypes.STRING,
     statefp: DataTypes.STRING,
     countyfp: DataTypes.STRING,

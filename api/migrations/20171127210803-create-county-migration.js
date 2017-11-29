@@ -2,10 +2,14 @@
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('CountyMigrations', {
-      fipsIn: {
+      id: {
         allowNull: false,
-        type: Sequelize.STRING,
-        primaryKey: true
+        autoIncrement: true,
+        primaryKey: true,
+        type: Sequelize.INTEGER
+      },
+      fipsIn: {
+        type: Sequelize.STRING
       },
       fipsOut: {
         type: Sequelize.STRING
@@ -35,14 +39,12 @@ module.exports = {
         type: Sequelize.STRING
       },
       createdAt: {
-        allowNull: false,
         type: Sequelize.DATE
       },
       updatedAt: {
-        allowNull: false,
         type: Sequelize.DATE
       }
-    });
+    }).then(() => queryInterface.addIndex('CountyMigrations', ['fipsIn', 'fipsOut', 'year']));
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('CountyMigrations');

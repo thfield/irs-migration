@@ -1,7 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   var CountyPop = sequelize.define('CountyPop', {
-    fips: DataTypes.STRING,
+    fips: { type: DataTypes.STRING, primaryKey: true },
     pop2000: DataTypes.INTEGER,
     pop2001: DataTypes.INTEGER,
     pop2002: DataTypes.INTEGER,
