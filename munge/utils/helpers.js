@@ -22,4 +22,12 @@ function fullYear (yr) {
   return `${c}${yr.slice(2, 4)}`
 }
 
-module.exports = {getPopData, fullYear}
+/** @function otherFips
+ * @param {string} fips - target fips
+ * @param {object} mig - migration data object
+ */
+function otherFips (fips, mig) {
+  return mig.fipsIn === fips ? mig.fipsOut : mig.fipsIn
+}
+
+module.exports = {getPopData, fullYear, otherFips}
