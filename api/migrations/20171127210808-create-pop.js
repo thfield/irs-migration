@@ -1,7 +1,7 @@
 'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('CountyPops', {
+    return queryInterface.createTable('Populations', {
       fips: {
         allowNull: false,
         type: Sequelize.STRING,
@@ -59,14 +59,16 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       createdAt: {
+        allowNull: true,
         type: Sequelize.DATE
       },
       updatedAt: {
+        allowNull: true,
         type: Sequelize.DATE
       }
     })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('CountyPops')
+    return queryInterface.dropTable('Populations')
   }
 }

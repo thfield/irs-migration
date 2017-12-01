@@ -25,7 +25,7 @@ router.get('/:fips', function (req, res, next) {
 
   function getMigrations (county) {
     if (county === null) throw new Error('County FIPS not found')
-    models.CountyMigration.findAll({
+    models.Migration.findAll({
       where: Sequelize.and({year: '1415'},
         Sequelize.or(
           {fipsIn: req.params.fips},
@@ -51,7 +51,7 @@ router.get('/:fips', function (req, res, next) {
   // function getMigrations (county) {
   //   if (county === null) throw new Error('County FIPS not found')
   //   let data = [
-  //     models.CountyMigration.findAll({
+  //     models.Migration.findAll({
   //       where: Sequelize.and({year: '1415'},
   //         Sequelize.or(
   //           {fipsIn: req.params.fips},
@@ -60,7 +60,7 @@ router.get('/:fips', function (req, res, next) {
   //       ),
   //       attributes: ['fipsIn', 'fipsOut', 'y1_statefips', 'y1_countyfips', 'y2_statefips', 'y2_countyfips', 'n1', 'n2', 'agi', 'year']
   //     }),
-  //     models.CountyPop.findById(req.params.fips, {
+  //     models.Population.findById(req.params.fips, {
   //       attributes: ['fips', 'pop2000', 'pop2001', 'pop2002', 'pop2003', 'pop2004', 'pop2005', 'pop2006', 'pop2007', 'pop2008', 'pop2009', 'pop2010', 'pop2011', 'pop2012', 'pop2013', 'pop2014', 'pop2015', 'pop2016']
   //     })
   //   ]

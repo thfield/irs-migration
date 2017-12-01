@@ -10,8 +10,10 @@ module.exports = (sequelize, DataTypes) => {
   })
 
   County.associate = function (models) {
-    // models.County.hasMany(models.CountyMigration)
-    models.County.hasOne(models.CountyPop, {foreignKey: 'fips', as: 'Population'})
+    // models.County.hasMany(models.Migration)
+    // TODO: set up N:M association:
+    // https://stackoverflow.com/questions/22958683/how-to-implement-many-to-many-association-in-sequelize
+    models.County.hasOne(models.Population, {foreignKey: 'fips', as: 'Population'})
     models.County.hasOne(models.Lineshape, {foreignKey: 'fips'})
   }
   return County

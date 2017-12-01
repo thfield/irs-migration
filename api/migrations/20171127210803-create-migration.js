@@ -1,7 +1,7 @@
 'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('CountyMigrations', {
+    return queryInterface.createTable('Migrations', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -39,14 +39,16 @@ module.exports = {
         type: Sequelize.STRING
       },
       createdAt: {
+        allowNull: true,
         type: Sequelize.DATE
       },
       updatedAt: {
+        allowNull: true,
         type: Sequelize.DATE
       }
-    }).then(() => queryInterface.addIndex('CountyMigrations', ['fipsIn', 'fipsOut', 'year']))
+    }).then(() => queryInterface.addIndex('Migrations', ['fipsIn', 'fipsOut', 'year']))
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('CountyMigrations')
+    return queryInterface.dropTable('Migrations')
   }
 }

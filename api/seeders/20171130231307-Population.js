@@ -14,7 +14,7 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    return queryInterface.bulkInsert('CountyPops', popSeedData, {})
+    return queryInterface.bulkInsert('Populations', popSeedData, {})
   },
 
   down: (queryInterface, Sequelize) => {
@@ -25,6 +25,6 @@ module.exports = {
       Example:
       return queryInterface.bulkDelete('Person', null, {});
     */
-    return queryInterface.bulkDelete('CountyPops', null, {})
+    return queryInterface.bulkDelete('Populations', null, {})
   }
 }

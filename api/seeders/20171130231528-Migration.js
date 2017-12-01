@@ -13,9 +13,9 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    let mirationsSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-migrations.json', 'utf8'))
+    let migrationSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-migrations.json', 'utf8'))
 
-    return queryInterface.bulkInsert('CountyMigrations', mirationsSeedData, {})
+    return queryInterface.bulkInsert('Migrations', migrationSeedData, {})
   },
 
   down: (queryInterface, Sequelize) => {
@@ -26,6 +26,6 @@ module.exports = {
       Example:
       return queryInterface.bulkDelete('Person', null, {});
     */
-    return queryInterface.bulkDelete('CountyMigrations', null, {})
+    return queryInterface.bulkDelete('Migrations', null, {})
   }
 }
