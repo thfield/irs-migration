@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 const fs = require('fs')
 
 module.exports = {
@@ -27,4 +27,4 @@ module.exports = {
     */
     return queryInterface.bulkDelete('CountyPops', null, {})
   }
-};
+}

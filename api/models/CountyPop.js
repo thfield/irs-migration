@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   var CountyPop = sequelize.define('CountyPop', {
     fips: { type: DataTypes.STRING, primaryKey: true },
@@ -19,12 +19,11 @@ module.exports = (sequelize, DataTypes) => {
     pop2014: DataTypes.INTEGER,
     pop2015: DataTypes.INTEGER,
     pop2016: DataTypes.INTEGER
-  }, {
-    classMethods: {
-      associate: function(models) {
-        CountyPop.belongsTo(models.County)
-      }
-    }
-  });
-  return CountyPop;
-};
+  })
+
+  CountyPop.associate = function (models) {
+    models.CountyPop.belongsTo(models.County, {foreignKey: 'fips'})
+  }
+
+  return CountyPop
+}

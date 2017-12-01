@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   var CountyMigration = sequelize.define('CountyMigration', {
     fipsIn: DataTypes.STRING,
@@ -11,12 +11,11 @@ module.exports = (sequelize, DataTypes) => {
     n2: DataTypes.STRING,
     agi: DataTypes.STRING,
     year: DataTypes.STRING
-  }, {
-    classMethods: {
-      associate: function(models) {
-         CountyMigration.belongsTo(models.County)
-      }
-    }
-  });
-  return CountyMigration;
-};
+  })
+
+  CountyMigration.associate = function (models) {
+    models.CountyMigration.hasMany(models.County)
+  }
+
+  return CountyMigration
+}

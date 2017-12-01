@@ -1,9 +1,9 @@
 var express = require('express')
 var csv = require('csv-express')
 var router = express.Router()
+var Sequelize = require('sequelize')
 var models = require('../models')
-// var countymigrations = require('../models/countymigration.js')
-// var countypops = require('../models/countypop.js')
+const h = require('../../munge/utils/helpers')
 
 /* GET users listing. */
 router.get('/:fips', function (req, res, next) {
@@ -13,15 +13,69 @@ router.get('/:fips', function (req, res, next) {
   // join with population for county with "other fips" && year
   // pick out "interesting information"
   // return csv
+  let errHandle = err => { console.error(err); res.status(400).send(err.message) }
 
-  models.County.findAll({
-    where: {fips: req.params.fips},
-    attributes: ['fips', 'state', 'statefp', 'countyfp', 'name']
-  }).then(function (county) {
-    // res.send(county)
-    let foo = county.map(f => f.get({plain: true})) // only get interesting information
-    res.csv(foo, true) // 2nd param "true" returns header row
-  }).catch(err => { res.send(err) })
+  models.County.findById(req.params.fips, {include: [{model: models.Lineshape}]})
+    // .then(getMigrations)
+    .then(function (county) {
+      console.log(county)
+      county.getLineshape().then(pop => res.send(pop))
+    })
+    .catch(errHandle)
+
+  function getMigrations (county) {
+    if (county === null) throw new Error('County FIPS not found')
+    models.CountyMigration.findAll({
+      where: Sequelize.and({year: '1415'},
+        Sequelize.or(
+          {fipsIn: req.params.fips},
+          {fipsOut: req.params.fips}
+        )
+      ),
+      attributes: ['fipsIn', 'fipsOut', 'y1_statefips', 'y1_countyfips', 'y2_statefips', 'y2_countyfips', 'n1', 'n2', 'agi', 'year']
+    })
+    .then(function (db) {
+      res.send(db[0])
+      // let migrations = db[0].map(f => f.get({plain: true})) // ignore sequelize model props
+      // let pops = db[1].map(f => f.get({plain: true})) // ignore sequelize model props
+      // migrations = migrations.map(function (coYr) {
+      //   let id = h.otherFips(req.param.fips, coYr)
+      //   let pop = h.getPopData(id, h.fullYear(coYr.year), pops)
+      //   return Object.assign(coYr, {pop: pop})
+      // })
+      // res.csv(migrations, true) // 2nd param "true" returns header row
+    })
+    .catch(errHandle)
+  }
+
+  // function getMigrations (county) {
+  //   if (county === null) throw new Error('County FIPS not found')
+  //   let data = [
+  //     models.CountyMigration.findAll({
+  //       where: Sequelize.and({year: '1415'},
+  //         Sequelize.or(
+  //           {fipsIn: req.params.fips},
+  //           {fipsOut: req.params.fips}
+  //         )
+  //       ),
+  //       attributes: ['fipsIn', 'fipsOut', 'y1_statefips', 'y1_countyfips', 'y2_statefips', 'y2_countyfips', 'n1', 'n2', 'agi', 'year']
+  //     }),
+  //     models.CountyPop.findById(req.params.fips, {
+  //       attributes: ['fips', 'pop2000', 'pop2001', 'pop2002', 'pop2003', 'pop2004', 'pop2005', 'pop2006', 'pop2007', 'pop2008', 'pop2009', 'pop2010', 'pop2011', 'pop2012', 'pop2013', 'pop2014', 'pop2015', 'pop2016']
+  //     })
+  //   ]
+  //   Promise.all(data).then(function (db) {
+  //     let migrations = db[0].map(f => f.get({plain: true})) // ignore sequelize model props
+  //     let pops = db[1].map(f => f.get({plain: true})) // ignore sequelize model props
+  //     migrations = migrations.map(function (coYr) {
+  //       let id = h.otherFips(req.param.fips, coYr)
+  //       let pop = h.getPopData(id, h.fullYear(coYr.year), pops)
+  //       return Object.assign(coYr, {pop: pop})
+  //     })
+  //     res.csv(migrations, true) // 2nd param "true" returns header row
+  //   })
+  //   .catch(errHandle)
+  // }
 })
 
 module.exports = router

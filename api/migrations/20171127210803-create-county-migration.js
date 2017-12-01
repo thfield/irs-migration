@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('CountyMigrations', {
@@ -44,9 +44,9 @@ module.exports = {
       updatedAt: {
         type: Sequelize.DATE
       }
-    }).then(() => queryInterface.addIndex('CountyMigrations', ['fipsIn', 'fipsOut', 'year']));
+    }).then(() => queryInterface.addIndex('CountyMigrations', ['fipsIn', 'fipsOut', 'year']))
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('CountyMigrations');
+    return queryInterface.dropTable('CountyMigrations')
   }
-};
+}

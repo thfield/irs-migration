@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 const fs = require('fs')
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -26,4 +26,4 @@ module.exports = {
     */
     return queryInterface.bulkDelete('Counties', null, {})
   }
-};
+}

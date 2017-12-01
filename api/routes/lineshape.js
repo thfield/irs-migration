@@ -11,13 +11,10 @@ router.get('/:fips', function (req, res, next) {
   // get lineshapes for all
   // return topojson
 
-  models.County.findAll({
-    where: {fips: req.params.fips},
-    attributes: ['fips', 'state', 'statefp', 'countyfp', 'name']
-  }).then(function (county) {
-    // res.send(county)
-    let foo = county.map(f => f.get({plain: true})) // only get interesting information
-    res.csv(foo, true) // 2nd param "true" returns header row
+  models.Lineshape.findOne({
+    where: {fips: req.params.fips}
+  }).then(function (lineshape) {
+    res.send(lineshape.geojson)
   }).catch(err => { res.send(err) })
 })
 

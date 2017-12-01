@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 module.exports = (sequelize, DataTypes) => {
   var County = sequelize.define('County', {
     fips: { type: DataTypes.STRING, primaryKey: true },
@@ -7,13 +7,12 @@ module.exports = (sequelize, DataTypes) => {
     countyfp: DataTypes.STRING,
     name: DataTypes.STRING,
     type: DataTypes.STRING
-  }, {
-    classMethods: {
-      associate: function(models) {
-        County.hasMany(models.CountyMigration)
-        County.hasMany(models.CountyPop)
-      }
-    }
-  });
-  return County;
-};
+  })
+
+  County.associate = function (models) {
+    // models.County.hasMany(models.CountyMigration)
+    models.County.hasOne(models.CountyPop, {foreignKey: 'fips', as: 'Population'})
+    models.County.hasOne(models.Lineshape, {foreignKey: 'fips'})
+  }
+  return County
+}
