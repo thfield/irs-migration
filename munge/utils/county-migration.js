@@ -9,9 +9,10 @@ const h = require('./helpers')
  * @param {string} co - county fips code
  * @param {string[]} years - array of years
  * @param {string} path
+ * @param {boolean} pare - remove non-standard county fips?
  * @returns {array} focalFips
  */
-function combineData (st, co, years, path = '../data') {
+function combineData (st, co, years, path = '../data', pare = false) {
   const fips = st.concat(co)
   // create file for combined data
   let combinedPath = `${path}/${fips}/${fips}combined.csv`
@@ -28,9 +29,6 @@ function combineData (st, co, years, path = '../data') {
       let data = d3.csvParse(fs.readFileSync(file, 'utf8'))
 
       data.forEach(function (county) {
-        focalFips.add(county.y1_statefips + county.y1_countyfips)
-        focalFips.add(county.y2_statefips + county.y2_countyfips)
-
         let id = (county.y1_statefips === st && county.y1_countyfips === co)
           ? county.y2_statefips.concat(county.y2_countyfips)
           : county.y1_statefips.concat(county.y1_countyfips)
@@ -49,8 +47,11 @@ function combineData (st, co, years, path = '../data') {
           agi: county.agi,
           pop: pop
         }
-
-        combinedData.push(countyData)
+        if (!pare && h.standardFips(countyData)) {
+          focalFips.add(county.y1_statefips + county.y1_countyfips)
+          focalFips.add(county.y2_statefips + county.y2_countyfips)
+          combinedData.push(countyData)
+        }
       })
     })
   })

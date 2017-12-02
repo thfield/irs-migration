@@ -21,6 +21,6 @@ module.exports = {
     })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Lineshapes')
+    return queryInterface.dropTable('Lineshapes', {force: true})
   }
 }

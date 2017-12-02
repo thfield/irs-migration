@@ -43,5 +43,6 @@ input0910in="$path/raw/countyinflow0910.csv"
 sed '1d' $input0910in | \
   awk -F , '{ printf "%02i,%03i,%02i,%03i,%s,%s,%i,%i,%i\n" ,$1,$2,$3,$4,$5,$6,$7,$8,$9 }' |\
   sed -E "/^ *$/d; s/^([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*),([^,]*)$/\1\2,\3\4,\1,\2,\3,\4,\7,\8,\9,${year}/" >> $concatted
-
-sed -E 's/^([a-zA-Z]{2}),([0-9]{2}),([0-9]{3}),(.*)$/\2\3,\1,\2,\3,\4/' $path/raw/national_county.txt | tr -d '\r' > $path/pg/counties.csv
+  
+echo 'fips,state,statefp,countyfp,name,type' > $path/pg/counties.csv
+sed -E 's/^([a-zA-Z]{2}),([0-9]{2}),([0-9]{3}),(.*)$/\2\3,\1,\2,\3,\4/' $path/raw/national_county.txt | tr -d '\r' >> $path/pg/counties.csv

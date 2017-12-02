@@ -49,6 +49,6 @@ module.exports = {
     }).then(() => queryInterface.addIndex('Migrations', ['fipsIn', 'fipsOut', 'year']))
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Migrations')
+    return queryInterface.dropTable('Migrations', {force: true})
   }
 }

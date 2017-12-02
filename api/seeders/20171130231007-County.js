@@ -1,8 +1,9 @@
 'use strict'
 const fs = require('fs')
+const d3 = require('d3-dsv')
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    let countySeedData = JSON.parse(fs.readFileSync('../data/pg/seed-counties.json', 'utf8'))
+    let countySeedData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.

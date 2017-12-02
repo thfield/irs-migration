@@ -30,4 +30,17 @@ function otherFips (fips, mig) {
   return mig.fipsIn === fips ? mig.fipsOut : mig.fipsIn
 }
 
-module.exports = {getPopData, fullYear, otherFips}
+/** @function standardFips
+ * is the migration data row for a fips standard county?
+ * @param {object} data - migration data object
+ * @returns {boolean} true = all conditions met, false = at least one condition not met
+ */
+function standardFips (data) {
+  // state fips 57 is the irs migration "state" indicating foreign
+  let conditions = [
+    +data.y1_statefips < 57,
+    +data.y2_statefips < 57
+  ]
+  return !conditions.includes(false)
+}
+module.exports = {getPopData, fullYear, otherFips, standardFips}

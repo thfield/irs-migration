@@ -10,10 +10,14 @@ module.exports = (sequelize, DataTypes) => {
   })
 
   County.associate = function (models) {
-    // models.County.hasMany(models.Migration)
     // TODO: set up N:M association:
     // https://stackoverflow.com/questions/22958683/how-to-implement-many-to-many-association-in-sequelize
-    models.County.hasOne(models.Population, {foreignKey: 'fips', as: 'Population'})
+    // https://stackoverflow.com/questions/41528676/sequelize-belongstomany-with-custom-join-table-primary-key
+    // https://stackoverflow.com/questions/28974021/sequelize-join-on-non-primary-key
+    models.County.belongsToMany(models.Migration, {foreignKey: 'fips', as: 'MigrationIn', through: 'county_migrationIn'})
+    // models.County.belongsToMany(models.Migration, {foreignKey: 'fips', as: 'MigrationOut', through: 'county_migrationOut'})
+
+    models.County.hasOne(models.Population, {foreignKey: 'fips'})
     models.County.hasOne(models.Lineshape, {foreignKey: 'fips'})
   }
   return County

@@ -69,6 +69,6 @@ module.exports = {
     })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Populations')
+    return queryInterface.dropTable('Populations', {force: true})
   }
 }
