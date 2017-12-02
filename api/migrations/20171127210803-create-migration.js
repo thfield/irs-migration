@@ -9,7 +9,11 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       fipsIn: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        // references: {
+        //   model: 'CountyMigration',
+        //   key: 'fipsIn'
+        // }
       },
       fipsOut: {
         type: Sequelize.STRING
@@ -39,11 +43,11 @@ module.exports = {
         type: Sequelize.STRING
       },
       createdAt: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       },
       updatedAt: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.DATE
       }
     }).then(() => queryInterface.addIndex('Migrations', ['fipsIn', 'fipsOut', 'year']))

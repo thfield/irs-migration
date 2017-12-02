@@ -18,8 +18,13 @@ module.exports = (sequelize, DataTypes) => {
     // https://stackoverflow.com/questions/22958683/how-to-implement-many-to-many-association-in-sequelize
     // https://stackoverflow.com/questions/41528676/sequelize-belongstomany-with-custom-join-table-primary-key
     // https://stackoverflow.com/questions/28974021/sequelize-join-on-non-primary-key
-    models.Migration.belongsToMany(models.County, {foreignKey: 'fipsIn', as: 'Y1County', through: 'county_migrationIn'})
-    // models.Migration.belongsToMany(models.County, {foreignKey: 'fipsOut', as: 'Y2County', through: 'county_migrationOut'})
+    // https://codeburst.io/sequelize-migrations-setting-up-associations-985d29b61ee7
+    // models.Migration.belongsToMany(models.County, {
+    //   as: 'Y1County',
+    //   foreignKey: 'fips',
+    //   otherKey: 'fipsIn',
+    //   through: 'CountyMigration'
+    // })
   }
 
   return Migration

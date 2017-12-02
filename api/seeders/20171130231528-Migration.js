@@ -14,7 +14,11 @@ module.exports = {
       }], {});
     */
     let migrationSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-migrations.json', 'utf8'))
-
+    migrationSeedData = migrationSeedData.map(d => {
+      d.createdAt = new Date()
+      d.updatedAt = new Date()
+      return d
+    })
     return queryInterface.bulkInsert('Migrations', migrationSeedData, {})
   },
 

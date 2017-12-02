@@ -1,5 +1,6 @@
 'use strict'
 const fs = require('fs')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     /*
@@ -12,13 +13,12 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    let lineshapeSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-lineshapes.json', 'utf8'))
-    lineshapeSeedData = lineshapeSeedData.map(d => {
-      d.createdAt = new Date()
-      d.updatedAt = new Date()
-      return d
-    })
-    return queryInterface.bulkInsert('Lineshapes', lineshapeSeedData, {})
+    // let sql = `CREATE UNIQUE INDEX "CountyMigrationCompoundIndex"
+    //         ON public."CountyMigrations"
+    //         USING btree
+    //         ("fipsIn", "migrationId");
+    //       `
+    // return queryInterface.sequelize.query(sql, {raw: true})
   },
 
   down: (queryInterface, Sequelize) => {
@@ -29,6 +29,6 @@ module.exports = {
       Example:
       return queryInterface.bulkDelete('Person', null, {});
     */
-    return queryInterface.bulkDelete('Lineshapes', null, {})
+    // return queryInterface.bulkDelete('CountyMigrations', null, {})
   }
 }

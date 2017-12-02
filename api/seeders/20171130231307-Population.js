@@ -3,7 +3,6 @@ const fs = require('fs')
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    let popSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-populations.json', 'utf8'))
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
@@ -14,6 +13,12 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
+    let popSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-populations.json', 'utf8'))
+    popSeedData = popSeedData.map(d => {
+      d.createdAt = new Date()
+      d.updatedAt = new Date()
+      return d
+    })
     return queryInterface.bulkInsert('Populations', popSeedData, {})
   },
 

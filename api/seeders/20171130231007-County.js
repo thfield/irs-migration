@@ -3,7 +3,6 @@ const fs = require('fs')
 const d3 = require('d3-dsv')
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    let countySeedData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
     /*
       Add altering commands here.
       Return a promise to correctly handle asynchronicity.
@@ -14,6 +13,12 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
+    let countySeedData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
+    countySeedData = countySeedData.map(d => {
+      d.createdAt = new Date()
+      d.updatedAt = new Date()
+      return d
+    })
     return queryInterface.bulkInsert('Counties', countySeedData, {})
   },
 

@@ -17,7 +17,7 @@ router.get('/:fips', function (req, res, next) {
 
   models.County.findById(req.params.fips, {include: [models.Lineshape, models.Population]})
     // .then(getMigrations)
-    .then(foo)
+    .then(foo1)
     // .then(function (county) {
     //   console.log(county)
     //   county.getLineshape().then(pop => res.send(pop))
