@@ -11,8 +11,8 @@ module.exports = {
       fipsIn: {
         type: Sequelize.STRING,
         // references: {
-        //   model: 'CountyMigration',
-        //   key: 'fipsIn'
+        //   model: 'Counties',
+        //   key: 'fips'
         // }
       },
       fipsOut: {

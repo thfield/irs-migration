@@ -1,6 +1,6 @@
 'use strict'
 const fs = require('fs')
-
+const d3 = require('d3-dsv')
 module.exports = {
   up: (queryInterface, Sequelize) => {
     /*
@@ -13,7 +13,14 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    let popSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-populations.json', 'utf8'))
+    // let countySeedData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
+    let popSeedData = d3.csvParse(fs.readFileSync('../data/population.csv', 'utf8'), function (r) {
+      let rowNames = Object.keys(r)
+      rowNames.forEach(function (prop) {
+        if (r[prop] === 'undefined') { r[prop] = null }
+      })
+      return r
+    })
     popSeedData = popSeedData.map(d => {
       d.createdAt = new Date()
       d.updatedAt = new Date()

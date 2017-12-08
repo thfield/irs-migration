@@ -1,9 +1,11 @@
 var express = require('express')
 var csv = require('csv-express')
 var router = express.Router()
-var Sequelize = require('sequelize')
+// var Sequelize = require('sequelize')
 var models = require('../models')
 const h = require('../../munge/utils/helpers')
+
+// csv.preventCast = true
 
 /* GET users listing. */
 router.get('/:fips', function (req, res, next) {
@@ -14,36 +16,87 @@ router.get('/:fips', function (req, res, next) {
   // pick out "interesting information"
   // return csv
   let errHandle = err => { console.error(err); res.status(400).send(err.message) }
+  let direction = 'in'
+  let dirProp = getDirProp(direction)
 
-  models.Migration.findOne({
-    where: {fipsIn: req.params.fips, fipsOut: '06001'},
-    include: [ 'Y1County' ]
-  })
-    .then(foo1)
-    .catch(errHandle)
+  let migrationPromise = models.Migration.findAll({
+    where: {fipsIn: req.params.fips}
+  }).catch(errHandle)
 
-  function foo1 (r) {
-    let answer = JSON.stringify(r)
-    console.log('\n\n\n\n')
-    console.log(answer)
-    console.log('\n\n\n\n')
-    res.send(answer)
+  let countyPromise = migrationPromise.then(getCounties).catch(errHandle)
+
+  Promise.all([migrationPromise, countyPromise]).then(function ([migrations, counties]) {
+    let result = migrations.map(function (migration) {
+      return {
+        id: migration[dirProp],
+        year: migration.year,
+        y1_statefips: migration.y1_statefips,
+        y1_countyfips: migration.y1_countyfips,
+        y2_statefips: migration.y2_statefips,
+        y2_countyfips: migration.y2_countyfips,
+        n1: migration.n1,
+        n2: migration.n2,
+        agi: migration.agi,
+        pop: getPop(migration, counties)
+      }
+    })
+    let headers = [
+      'id',
+      'year',
+      'y1_statefips',
+      'y1_countyfips',
+      'y2_statefips',
+      'y2_countyfips',
+      'n1',
+      'n2',
+      'agi',
+      'pop'
+    ]
+    result = h.arrayToCsvString(result, headers)
+    res.set('Content-Type', 'text/csv')
+      .send(result)
+  }).catch(errHandle)
+
+  function getCounties (migrations) {
+    let unique = uniqueFips(migrations)
+    return models.County.findAll({
+      where: {fips: unique},
+      include: ['Population']
+    })
   }
 
-  function foo (county) {
-    models.Migration.findOne({
-      where: {fipsIn: req.params.fips, fipsOut: '06001'},
-      // attributes: ['fipsIn', 'fipsOut', 'y1_statefips', 'y1_countyfips', 'y2_statefips', 'y2_countyfips', 'n1', 'n2', 'agi', 'year'],
-      include: [ 'Y1County' ]
-    })
-    .then(function (migration) {
-      console.log('\n\n\n\n')
-      console.log(JSON.stringify(migration))
-      console.log('\n\n\n\n')
-      res.send(migration)
-    })
-    .catch(errHandle)
+  function getPop (migration, counties) {
+    let dir = getOtherDirProp(direction)
+    let year = h.fullYear(migration.year)
+    let county = counties.find(function (co) { return co.fips === migration[dir] })
+    let pop = county.Population['pop' + year]
+    return pop
   }
 })
 
 module.exports = router
+
+/** @function uniqueFips
+ * @param {array} migrations  - array of sequelize objects returned from query
+ * @param {string} [direction=in]  - "in" or "out"
+ * @returns {array} unique fips from the migration array
+ */
+function uniqueFips (migrations, direction = 'in') {
+  let res = new Set()
+  let dir = getOtherDirProp(direction)
+  migrations.forEach(function (migration) {
+    res.add(migration[dir])
+  })
+  return Array.from(res)
+}
+
+function getDirProp (direction) {
+  direction = direction.toLowerCase()
+  let ds = { in: 'fipsIn', out: 'fipsOut' }
+  return ds['in']
+}
+
+function getOtherDirProp (direction) {
+  direction = direction.toLowerCase()
+  return { out: 'fipsIn', in: 'fipsOut' }[direction]
+}

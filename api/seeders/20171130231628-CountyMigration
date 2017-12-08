@@ -14,13 +14,24 @@ module.exports = {
       }], {});
     */
     let migrationSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-migrations.json', 'utf8'))
-    migrationSeedData = migrationSeedData.map(d => {
-      d.createdAt = new Date()
-      d.updatedAt = new Date()
-      return d
+    let county_migrationSeedData = []
+
+    migrationSeedData.forEach(function (d, i) {
+      county_migrationSeedData.push({
+        fipsId: d.fipsIn,
+        migrationId: i,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      county_migrationSeedData.push({
+        fipsId: d.fipsOut,
+        migrationId: i,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
     })
 
-    return queryInterface.bulkInsert('Migrations', migrationSeedData, {})
+    return queryInterface.bulkInsert('CountyMigrations', county_migrationSeedData, {})
   },
 
   down: (queryInterface, Sequelize) => {
@@ -31,6 +42,7 @@ module.exports = {
       Example:
       return queryInterface.bulkDelete('Person', null, {});
     */
-    return queryInterface.bulkDelete('Migrations', null, {})
+    return queryInterface.bulkDelete('CountyMigrations', null, {})
   }
 }
+

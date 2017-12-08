@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
 
     // models.County.belongsToMany(models.Migration, {
     //   as: 'MigrationIn',
-    //   foreignKey: 'fipsIn',
+    //   foreignKey: 'fipsId',
     //   otherKey: 'fips',
     //   through: 'CountyMigration'
     // })
