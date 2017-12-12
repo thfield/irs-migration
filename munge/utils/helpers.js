@@ -46,23 +46,24 @@ function standardFips (data) {
 
 /** @function arrayToCsvString
  * turn an array of objects into a csv string, row separated by '\n'
- * @param {object[]} - array of objects
- * @param {string[]} - header row
+ * @param {object[]} arr - data
+ * @param {string[]} [headers] - header row
  * @returns {string}
  */
 function arrayToCsvString (arr, headers) {
-  function obj2str (obj, props) {
-    let r = ''
-    props.forEach(function (p, i, a) {
-      r += obj[p]
-      if (i < a.length - 1) r += ','
-    })
-    return r
-  }
+  // use keys of first object if no headers object
+  headers = headers || Object.keys(arr[0])
 
   return arr.map(function (el) {
-    return obj2str(el, headers)
+    return makeRow(el, headers)
   }).join('\n')
+
+  function makeRow (obj, props) {
+    let res = props.map(function (p) {
+      return obj[p]
+    })
+    return res.join(',')
+  }
 }
 
 module.exports = {getPopData, fullYear, otherFips, standardFips, arrayToCsvString}
