@@ -6,12 +6,6 @@ const h = require('../../munge/utils/helpers')
 
 /* GET users listing. */
 router.get('/:fips', function (req, res, next) {
-  // check that fips is valid
-  // get county migration data for fips:
-  //   - where fipsIn === fips && fipsOut === fips
-  // join with population for county with "other fips" && year
-  // pick out "interesting information"
-  // return csv
   let errHandle = err => { console.error(err); res.status(400).send(err.message) }
   let direction = req.query.direction || 'in'
   let dirProp = getDirProp(direction)
@@ -24,10 +18,12 @@ router.get('/:fips', function (req, res, next) {
       ? {fipsIn: req.params.fips}
       : {fipsOut: req.params.fips}
   }
-
+  // return migrationPromise.then(function (migrations) {
+  //   res.send(migrations)
+  // })
   let countyPromise = migrationPromise.then(getCounties).catch(errHandle)
   function getCounties (migrations) {
-    let unique = uniqueFips(migrations)
+    let unique = uniqueFips(migrations, direction)
     return models.County.findAll({
       where: {fips: unique},
       include: ['Population']
@@ -37,7 +33,7 @@ router.get('/:fips', function (req, res, next) {
   Promise.all([migrationPromise, countyPromise]).then(function ([migrations, counties]) {
     let result = migrations.map(function (migration) {
       return {
-        id: migration[dirProp],
+        id: migration[getOtherDirProp(direction)],
         year: migration.year,
         y1_statefips: migration.y1_statefips,
         y1_countyfips: migration.y1_countyfips,
@@ -67,10 +63,11 @@ router.get('/:fips', function (req, res, next) {
   }).catch(errHandle)
 
   function getPop (migration, counties) {
+    if (!h.standardFips(migration)) { return 0 }
     let dir = getOtherDirProp(direction)
     let year = h.fullYear(migration.year)
     let county = counties.find(function (co) { return co.fips === migration[dir] })
-    try {let pop = county.Population['pop' + year]} catch (err) { console.error(migration[dir])}
+    let pop = county.Population['pop' + year]
     return pop
   }
 })
