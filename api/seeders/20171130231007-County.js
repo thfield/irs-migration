@@ -13,13 +13,13 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    let countySeedData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
-    countySeedData = countySeedData.map(d => {
+    let countyData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
+    countyData = countyData.map(d => {
       d.createdAt = new Date()
       d.updatedAt = new Date()
       return d
     })
-    return queryInterface.bulkInsert('Counties', countySeedData, {})
+    return queryInterface.bulkInsert('Counties', countyData, {})
   },
 
   down: (queryInterface, Sequelize) => {

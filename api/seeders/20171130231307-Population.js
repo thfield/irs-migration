@@ -13,20 +13,19 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    // let countySeedData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
-    let popSeedData = d3.csvParse(fs.readFileSync('../data/population.csv', 'utf8'), function (r) {
+    let popData = d3.csvParse(fs.readFileSync('../data/population.csv', 'utf8'), function (r) {
       let rowNames = Object.keys(r)
       rowNames.forEach(function (prop) {
         if (r[prop] === 'undefined') { r[prop] = null }
       })
       return r
     })
-    popSeedData = popSeedData.map(d => {
+    popData = popData.map(d => {
       d.createdAt = new Date()
       d.updatedAt = new Date()
       return d
     })
-    return queryInterface.bulkInsert('Populations', popSeedData, {})
+    return queryInterface.bulkInsert('Populations', popData, {})
   },
 
   down: (queryInterface, Sequelize) => {

@@ -1,11 +1,8 @@
 var express = require('express')
-var csv = require('csv-express')
 var router = express.Router()
 // var Sequelize = require('sequelize')
 var models = require('../models')
 const h = require('../../munge/utils/helpers')
-
-// csv.preventCast = true
 
 /* GET users listing. */
 router.get('/:fips', function (req, res, next) {
@@ -16,14 +13,26 @@ router.get('/:fips', function (req, res, next) {
   // pick out "interesting information"
   // return csv
   let errHandle = err => { console.error(err); res.status(400).send(err.message) }
-  let direction = 'in'
+  let direction = req.query.direction || 'in'
   let dirProp = getDirProp(direction)
 
   let migrationPromise = models.Migration.findAll({
-    where: {fipsIn: req.params.fips}
+    where: whichMigrations(direction)
   }).catch(errHandle)
+  function whichMigrations (direction) {
+    return direction === 'in'
+      ? {fipsIn: req.params.fips}
+      : {fipsOut: req.params.fips}
+  }
 
   let countyPromise = migrationPromise.then(getCounties).catch(errHandle)
+  function getCounties (migrations) {
+    let unique = uniqueFips(migrations)
+    return models.County.findAll({
+      where: {fips: unique},
+      include: ['Population']
+    })
+  }
 
   Promise.all([migrationPromise, countyPromise]).then(function ([migrations, counties]) {
     let result = migrations.map(function (migration) {
@@ -52,24 +61,16 @@ router.get('/:fips', function (req, res, next) {
       'agi',
       'pop'
     ]
-    result = h.arrayToCsvString(result, headers)
+    result = h.arrayToCsvString(result, headers, true)
     res.set('Content-Type', 'text/csv')
       .send(result)
   }).catch(errHandle)
-
-  function getCounties (migrations) {
-    let unique = uniqueFips(migrations)
-    return models.County.findAll({
-      where: {fips: unique},
-      include: ['Population']
-    })
-  }
 
   function getPop (migration, counties) {
     let dir = getOtherDirProp(direction)
     let year = h.fullYear(migration.year)
     let county = counties.find(function (co) { return co.fips === migration[dir] })
-    let pop = county.Population['pop' + year]
+    try {let pop = county.Population['pop' + year]} catch (err) { console.error(migration[dir])}
     return pop
   }
 })
@@ -93,7 +94,7 @@ function uniqueFips (migrations, direction = 'in') {
 function getDirProp (direction) {
   direction = direction.toLowerCase()
   let ds = { in: 'fipsIn', out: 'fipsOut' }
-  return ds['in']
+  return ds[direction]
 }
 
 function getOtherDirProp (direction) {

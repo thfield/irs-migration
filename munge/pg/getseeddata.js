@@ -5,7 +5,6 @@ const fs = require('fs')
 const h = require('../utils/helpers')
 const paths = {
   lineshapes: '../../data/geo/counties.geojson',
-  populations: '../../data/population.csv',
   migrations: '../../data/pg/alldata.csv'
 }
 
@@ -17,8 +16,7 @@ function readCsv (path) {
 }
 
 let data = {
-  lineshapes: JSON.parse(fs.readFileSync(paths.lineshapes, 'utf8')),
-  populations: readCsv(paths.populations),
+  lineshapes: JSON.parse(fs.readFileSync(paths.lineshapes, 'utf8'))
   migrations: readCsv(paths.migrations)
 }
 
@@ -31,8 +29,7 @@ try {
 
     return {
       id: fip,
-      lineshape: ls,
-      population: data.populations.find(function (d) { return d.fips === fip })
+      lineshape: ls
     }
   })
 } catch (err) {
@@ -48,15 +45,12 @@ mig.forEach(function (m) {
 
 let final = {
   lineshapes: [],
-  populations: [],
   migrations: mig
 }
 
 res.forEach(function (county) {
   final.lineshapes.push(county.lineshape)
-  final.populations.push(county.population)
 })
 
 write(`../../data/pg/seed-lineshapes.json`, final.lineshapes)
-write(`../../data/pg/seed-populations.json`, final.populations)
 write(`../../data/pg/seed-migrations.json`, final.migrations)

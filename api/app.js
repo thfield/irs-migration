@@ -8,6 +8,7 @@ var bodyParser = require('body-parser')
 var index = require('./routes/index')
 var county = require('./routes/county')
 var lineshape = require('./routes/lineshape')
+var topojson = require('./routes/topojson')
 var migration = require('./routes/migration')
 
 var app = express()
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 app.use('/', index)
 app.use('/county', county)
 app.use('/lineshape', lineshape)
+app.use('/topojson', topojson)
 app.use('/migration', migration)
 
 // catch 404 and forward to error handler

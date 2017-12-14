@@ -1,6 +1,6 @@
 'use strict'
 const fs = require('fs')
-
+const d3 = require('d3-dsv')
 module.exports = {
   up: (queryInterface, Sequelize) => {
     /*
@@ -13,14 +13,18 @@ module.exports = {
         isBetaMember: false
       }], {});
     */
-    let migrationSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-migrations.json', 'utf8'))
-    migrationSeedData = migrationSeedData.map(d => {
-      d.createdAt = new Date()
-      d.updatedAt = new Date()
-      return d
-    })
+    // just seed data
+    // let migrationSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-migrations.json', 'utf8'))
+    // migrationSeedData = migrationSeedData.map(d => {
+    //   d.createdAt = new Date()
+    //   d.updatedAt = new Date()
+    //   return d
+    // })
+    // return queryInterface.bulkInsert('Migrations', migrationSeedData, {})
 
-    return queryInterface.bulkInsert('Migrations', migrationSeedData, {})
+    // // all the data
+    let migrationData = d3.csvParse(fs.readFileSync('../data/pg/alldata.csv', 'utf8'))
+    return queryInterface.bulkInsert('Migrations', migrationData, {})
   },
 
   down: (queryInterface, Sequelize) => {
