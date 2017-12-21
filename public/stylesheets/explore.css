@@ -64,6 +64,12 @@ body {
   width: 960px;
 }
 
+#map svg {
+  fill: none;
+  stroke: #000;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
 .tooltip {
   position: absolute;
   display: none;

@@ -2,7 +2,7 @@ var express = require('express')
 var router = express.Router()
 // var Sequelize = require('sequelize')
 var models = require('../models')
-const h = require('../../munge/utils/helpers')
+const h = require('../munge/utils/helpers')
 const shared = require('./shared')
 
 /* GET users listing. */

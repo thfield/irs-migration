@@ -1,4 +1,3 @@
-import './style.css'
 import * as d3 from 'd3'
 import 'd3-queue'
 import * as d3Legend from 'd3-svg-legend'
@@ -102,6 +101,9 @@ function initialDraw (error, data, us, counties, fips) {
   yearSelector.max = years.length - 1
   yearSelector.value = years.length - 1
   selectedYear.innerHTML = munge.fullYear(years[years.length - 1])
+
+  let countyNameEls = document.querySelectorAll('.county-name')
+  countyNameEls.innerHTHML = fipsMap.get(fipsCounty).name
 
   // /* *** populate state selector *** */
   let states = nestedStateDataByYear[0].values.map(d => d.key).filter(d => d < 58)

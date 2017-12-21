@@ -3,7 +3,7 @@ var csv = require('csv-express')
 var router = express.Router()
 var Sequelize = require('sequelize')
 var models = require('../models')
-const h = require('../../munge/utils/helpers')
+const h = require('../munge/utils/helpers')
 
 /* GET users listing. */
 router.get('/:fips', function (req, res, next) {

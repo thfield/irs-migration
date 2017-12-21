@@ -10,13 +10,14 @@ var county = require('./routes/county')
 var lineshape = require('./routes/lineshape')
 var topojson = require('./routes/topojson')
 var migration = require('./routes/migration')
+var explore = require('./routes/explore')
 var baz = require('./routes/baz')
 
 var app = express()
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'ejs')
+app.set('view engine', 'pug')
 
 // uncomment after placing your favicon in /public
 // app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -27,10 +28,11 @@ app.use(cookieParser())
 app.use(express.static(path.join(__dirname, 'public')))
 
 app.use('/', index)
-app.use('/county', county)
-app.use('/lineshape', lineshape)
-app.use('/topojson', topojson)
-app.use('/migration', migration)
+app.use('/api/county', county)
+app.use('/api/lineshape', lineshape)
+app.use('/api/topojson', topojson)
+app.use('/api/migration', migration)
+app.use('/explore', explore)
 app.use('/baz', baz)
 
 // catch 404 and forward to error handler

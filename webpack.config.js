@@ -1,27 +1,23 @@
 const path = require('path')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+// const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: {
-    app: './src/index.js'
+    app: './src/explore.js'
   },
   output: {
     filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'public/javascripts')
   },
-  plugins: [
-    new CleanWebpackPlugin(['dist']),
-    new HtmlWebpackPlugin({
-      filename: 'index.html',
-      template: 'src/index.ejs',
-      chunks: ['app']
-    })
-  ],
+  // plugins: [
+  //   // new CleanWebpackPlugin(['dist']),
+  //   new HtmlWebpackPlugin({
+  //     filename: 'explore.html',
+  //     template: 'src/explore.ejs',
+  //     chunks: ['app']
+  //   })
+  // ],
   devtool: 'inline-source-map',
-  devServer: {
-    contentBase: './'
-  },
   module: {
     rules: [
       {
@@ -33,27 +29,6 @@ module.exports = {
             presets: ['babel-preset-env']
           }
         }
-      }, {
-        test: /\.css$/,
-        exclude: /(node_modules|bower_components)/,
-        use: [
-          'style-loader',
-          'css-loader'
-        ]
-      }, {
-        test: /\.(html)$/,
-        use: [{
-          loader: 'html-loader',
-          options: {
-            // attrs: [':data-src']
-          }
-        }]
-      }, {
-        test: /\.(png|svg|jpg|gif)$/,
-        exclude: /(node_modules|bower_components)/,
-        use: [
-          'file-loader'
-        ]
       }
     ]
   }

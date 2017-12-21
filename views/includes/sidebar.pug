@@ -1,0 +1,41 @@
+div(class='selector-control')
+  label(for='year-selector') Year:
+  span#selected-year
+  div
+    input#year-selector(type='range', min='0', max='1', value='0', step='1')
+    br
+    span(style='float:left;') 04-05
+    span(style='float:right;') 14-15
+br
+
+div(class='selector-control')
+  label(for='direction') Direction:
+  br
+  select#direction(name='direction')
+    option(value='in', selected) Immigration
+    option(value='out') Emigration
+
+div(class='selector-control')
+  label(for='stat') Statistic:
+  br
+  select#stat(name='stat')
+    option(value='n1', selected) Number of Returns
+    option(value='n2') Number of Exemptions
+    option(value='agi') Total Adjusted Gross Income
+    option(value='meanAgi') Mean Adjusted Gross Income
+br
+
+div
+  span Number of counties:
+  span#destination-counties
+br
+
+div
+  span Total number of returns:
+  span#number-returns
+br
+
+div
+  span &Delta;(in/out) number of returns:
+  span#net-flow
+br
