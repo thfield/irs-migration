@@ -25,8 +25,6 @@ module.exports = {
     let lineshapeData = JSON.parse(fs.readFileSync('../data/geo/counties.geojson', 'utf8')).features
     lineshapeData = lineshapeData.map(d => {
       let r = {}
-      r.createdAt = new Date()
-      r.updatedAt = new Date()
       r.fips = d.properties.GEOID
       r.geojson = JSON.stringify(d)
       return r

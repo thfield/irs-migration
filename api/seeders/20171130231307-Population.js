@@ -20,11 +20,6 @@ module.exports = {
       })
       return r
     })
-    popData = popData.map(d => {
-      d.createdAt = new Date()
-      d.updatedAt = new Date()
-      return d
-    })
     return queryInterface.bulkInsert('Populations', popData, {})
   },
 

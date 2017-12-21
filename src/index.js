@@ -38,8 +38,11 @@ let statFullName = {
 // switch path to build prod version
 let path = '../data'
 // let path = '.'
-let dataPath = `${path}/${fipsCounty}/${fipsCounty}combined.csv`
-let shapesPath = `${path}/${fipsCounty}/${fipsCounty}shapes.topojson`
+// let dataPath = `${path}/${fipsCounty}/${fipsCounty}combined.csv`
+// let shapesPath = `${path}/${fipsCounty}/${fipsCounty}shapes.topojson`
+let dataPath = `../foo/migration06075.csv`
+let shapesPath = `../foo/06075topo.json`
+// TODO: use "import(foo)" instead of d3.csv/d3.json for fipscodes.csv & states.topojson
 let statesPath = `${path}/geo/states.topojson`
 let fipsPath = `${path}/fipscodes.csv`
 
@@ -214,7 +217,7 @@ function initialDraw (error, data, us, counties, fips) {
     let val = getVal(d.properties.geoid, year, direction, stat)
     let pop = getVal(d.properties.geoid, year, direction, 'pop')
     // let n1 = (stat === 'n1') ? val : getVal(d.properties.geoid, year, direction, 'n1')
-    // let newbies = n1 / pop   // should get last year's pop 
+    // let newbies = n1 / pop   // should get last year's pop
     pop = (pop === null) ? 'n/a' : d3.format(',d')(pop)
     let htmlstring = `<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span><br>Population in ${yr}: ${pop}`
     // if (newbies !== 0 && pop !== 'n/a') {

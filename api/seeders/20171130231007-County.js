@@ -14,11 +14,6 @@ module.exports = {
       }], {});
     */
     let countyData = d3.csvParse(fs.readFileSync('../data/pg/counties.csv', 'utf8'))
-    countyData = countyData.map(d => {
-      d.createdAt = new Date()
-      d.updatedAt = new Date()
-      return d
-    })
     return queryInterface.bulkInsert('Counties', countyData, {})
   },
 

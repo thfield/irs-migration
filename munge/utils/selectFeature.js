@@ -5,6 +5,7 @@ const turf = require('@turf/helpers')
  * @param {string[]} ids
  * @param {string} idProp
  * @param {Object} featureCollection - geoJSON FeatureCollection
+ * @returns {FeatureCollection} geoJSON FeatureCollection
  */
 module.exports = (ids, idProp, featureCollection) => {
   let chosenFeatures = ids.map(id => {
