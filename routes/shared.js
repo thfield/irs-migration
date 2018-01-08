@@ -2,15 +2,14 @@
 
 /** @function uniqueFips
  * @param {array} migrations  - array of sequelize objects returned from query
- * @param {string} [direction=in]  - "in" or "out"
  * @returns {array} unique fips from the migration array
  */
-function uniqueFips (migrations, direction = 'in') {
+function uniqueFips (migrations) {
   // TODO: there is probably a sequelize 'SELECT UNIQUE' function that does exactly this.
   let res = new Set()
-  let dir = getOtherDirProp(direction)
   migrations.forEach(function (migration) {
-    res.add(migration[dir])
+    res.add(migration.fipsIn)
+    res.add(migration.fipsOut)
   })
   return Array.from(res)
 }
@@ -26,4 +25,32 @@ function getOtherDirProp (direction) {
   return { out: 'fipsIn', in: 'fipsOut' }[direction]
 }
 
-module.exports = { uniqueFips, getDirProp, getOtherDirProp }
+/** @function figureOutDirection
+ * figures out what direction
+ * @param {string} fips - fips code
+ * @param {object[]} migration - migration object from DB
+ */
+function figureOutDirection (fips, migration) {
+  if (fips === migration.fipsIn) {
+    return 'fipsIn'
+  } else if (fips === migration.fipsOut) {
+    return 'fipsOut'
+  }
+  return null
+}
+
+/** @function figureOutOppositeDirection
+ * figures out what direction
+ * @param {string} fips - fips code
+ * @param {object} migration - sequelize migration object from DB
+ */
+function figureOutOppositeDirection (fips, migration) {
+  if (fips === migration.fipsIn) {
+    return 'fipsOut'
+  } else if (fips === migration.fipsOut) {
+    return 'fipsIn'
+  }
+  return null
+}
+
+module.exports = { uniqueFips, getDirProp, getOtherDirProp, figureOutDirection, figureOutOppositeDirection }

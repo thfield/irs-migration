@@ -89,29 +89,6 @@ function dataTopNStates (data, prop, fipsMap, n = 10, stateFips = false, addProp
   return response
 }
 
-// /** @function dataAnnualStatesForDimple
-//  * @description returns data in form for use in dimple line chart
-//  * @param { object[] } data - nestedStateDataByYear
-//  * @returns { object }
-//  */
-// function dataAnnualStatesForDimple (data) {
-//   let result = {}
-//   data.forEach(function (state) {
-//     if (state.key > 57) { return }
-//     let statename = fipsMap.get(state.key)
-//     result[statename] = years.map(function (yr) {
-//       let v = state.values.find(function (y) { return y.key === yr })
-//       return {year: fullYear(yr),
-//         n1: v === undefined ? 0 : v.value.n1,
-//         n2: v === undefined ? 0 : v.value.n2,
-//         agi: v === undefined ? 0 : v.value.agi,
-//         meanAgi: v === undefined ? 0 : v.value.agi / v.value.n1
-//       }
-//     })
-//   })
-//   return result
-// }
-
 /*******************************************************************************
         data munge helper functions
 *******************************************************************************/

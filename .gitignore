@@ -2,4 +2,4 @@ data/
 foo*
 temp
 dist/
-api/config/config.json
+config/config.json

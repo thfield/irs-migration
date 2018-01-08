@@ -3,20 +3,13 @@ const path = require('path')
 
 module.exports = {
   entry: {
-    app: './src/explore.js'
+    app: './src/explore.js',
+    index: './src/display-counties.js'
   },
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'public/javascripts')
   },
-  // plugins: [
-  //   // new CleanWebpackPlugin(['dist']),
-  //   new HtmlWebpackPlugin({
-  //     filename: 'explore.html',
-  //     template: 'src/explore.ejs',
-  //     chunks: ['app']
-  //   })
-  // ],
   devtool: 'inline-source-map',
   module: {
     rules: [

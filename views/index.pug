@@ -2,4 +2,11 @@ extends layout
 
 block content
   h1= title
-  p Welcome to #{title}
+
+  div
+    p Jump to state
+      ul#links-list
+  p choose a county:
+  div#counties
+
+  script(src='/javascripts/index.bundle.js')

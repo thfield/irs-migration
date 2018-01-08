@@ -36,6 +36,7 @@ fi
 shp2json raw-geo/cb_2015_us_county_5m.shp -o geo/counties.geojson
 # county geo->topo conversion done in parse-county.js
 
+# geo2topo features=geo/counties.geojson > ../public/counties.topojson
 
 ##### state shapefiles #####
 
@@ -80,3 +81,5 @@ topoquantize 1e5 \
 # clean up
 rm geo/states.ndjson geo/states.topojson geo/states-simple.topojson
 mv geo/states-quantized.topojson geo/states.topojson
+
+cp geo/states.topojson ../public/states.topojson
