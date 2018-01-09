@@ -1,4 +1,7 @@
-function choroplethChart () {
+import * as d3 from 'd3'
+import * as topojson from 'topojson-client'
+
+export default function choroplethChart () {
   let data = [] // data is an array of k-v pairs looking like: { ${datakey}: foo, val: bar }
   let topoData // topojson
   let topoFiltered = {} // filtered clone of topoData used to draw/update
@@ -17,9 +20,9 @@ function choroplethChart () {
   let datakey // property name that uniquely identifies the data object
   let topoObjectName // property name of topojson object to be drawn
   let topoObjectClassName // classname to appply to drawn path from topojson
-  
-  let color = d3.scaleLinear()
-        .range(['#eee', '#333'])
+
+  let color// = d3.scaleLinear()
+        // .range(['#eee', '#333'])
 
   /* tooltip requires the class styles from style.css and that a div#tooltip exist on the page */
   let tooltip = d3.select('#tooltip') // TODO: generate this div inside chart constructor,
@@ -61,7 +64,6 @@ function choroplethChart () {
       let thesvg = svg.enter().append('svg')
           .attr('width', width)
           .attr('height', height)
-          .attr('style', 'border: 1px black solid;')
       var gEnter = thesvg
         .append('g')
 
@@ -128,8 +130,8 @@ function choroplethChart () {
 
       updateData = function () {
         // set the color scales
-        let extent = d3.extent(data, d => d.val)
-        color.domain(extent)
+        // let extent = d3.extent(data, d => d.val)
+        // color.domain(extent)
 
         // filter topoData by presence in data
         topoFiltered.objects[topoObjectName].geometries.length = 0

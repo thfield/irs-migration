@@ -134,7 +134,11 @@ To make legend for gifs
 - route lineshapes/{ST} return topjson lineshape for all counties in state (with centerpoint)
 
 ## dev scripts
-yarn run start:dev
+1. make sure postgres db is up  
+1. make sure webpack watch is running:
+  `yarn run watch`
+1. make sure express server is running:
+  `yarn run start:dev`
 
 ./node_modules/.bin/sequelize db:migrate
 ./node_modules/.bin/sequelize db:migrate:undo

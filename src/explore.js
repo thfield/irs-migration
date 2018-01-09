@@ -5,6 +5,7 @@ import * as topojson from 'topojson'
 import * as munge from './munge.js'
 import barChart from './charts/bar-chart.js'
 import lineGraph from './charts/line-graph.js'
+import choroplethChart from './charts/choropleth.js'
 import * as mapping from './mapping.js'
 import {fullYear} from '../munge/utils/helpers.js'
 import * as nesting from './nesting.js'
@@ -63,6 +64,7 @@ let pageEls = {
     destinationCounties: d3.select('#destination-counties'),
     numberReturns: d3.select('#number-returns'),
     netFlow: d3.select('#net-flow'),
+    choropleth: d3.select('#map'),
     mapSvg: d3.select('#map svg'),
     topCountyElement: d3.select('#rank-county'),
     topCountyOutOfStateElement: d3.select('#rank-county-outofstate'),
@@ -73,7 +75,7 @@ let pageEls = {
   }
 }
 
-function initialDraw (error, migrationData, counties, fips) {
+function initialDraw (error, migrationData, countyTopo, fips) {
   if (error) { throw error }
   /**
     * fipsMap has mapping of:
@@ -145,243 +147,103 @@ function initialDraw (error, migrationData, counties, fips) {
   }
 
   /* *** start map drawing *** */
-  let path = d3.geoPath()
-  let tooltip = d3.select('#tooltip')
-  let active = d3.select(null)
-  let zoom = d3.zoom()
-    .scaleExtent([1, 8])
-    .on('zoom', zoomed)
-  pageEls.d3s.mapSvg
-    .on('click', stopped, true)
-    .call(zoom) // delete this line to disable free zooming
-  let mapEls = pageEls.d3s.mapSvg.append('g')
-  let legendEl = pageEls.d3s.mapSvg.append('g')
+  let choropleth = choroplethChart()
 
-  /* *** draw legend *** */
-  legendEl
-    .attr('class', 'legendQuant')
-    .attr('transform', 'translate(830,300)')
-  let legend = d3Legend.legendColor()
-    .labelFormat(d3.format(',d'))
-    .title('')
-    .titleWidth(100)
-    .cells(7)
-    .scale(color)
-  pageEls.d3s.mapSvg.select('.legendQuant')
-    .call(legend)
+  choropleth
+    .colorScale(color)
+    .geokey('geoid')
+    .geoname('name')
+    .datakey('id')
+    .topoObjectName('counties')
+    .topoObjectClassName('counties')
+    .basemapClassName('states')
+    .topoData(countyTopo)
+    .basemap(topojson.mesh(statesTopoJson, statesTopoJson.objects.states))
 
-  /* *** draw counties *** */
-  let countymapel = mapEls.append('g')
-        .attr('class', 'counties')
-  countymapel.selectAll('path')
-      .data(topojson.feature(counties, counties.objects.counties).features)
-      .enter().append('path')
-        .attr('d', path)
-        .attr('stroke', '#fff')
-        .attr('fill', function (d) {
-          let num = getVal(d.properties.geoid, year, direction)
-          return num === null ? '#fff' : color(num)
-        })
-        .attr('id', function (d) { return d.geoid })
-        .attr('class', 'county')
-        .on('mouseover', ttOver)
-        .on('mousemove', ttMove)
-        .on('mouseout', ttOut)
-        .on('click', clicked)
+  let choroplethData = munge.choroplethData(munge.getDirectionYearValues(nested.CountyData, direction, year), 'n1')
 
-  /* *** draw states *** */
-  mapEls.append('path')
-      .attr('stroke-width', 0.5)
-      .attr('d', path(topojson.mesh(statesTopoJson, statesTopoJson.objects.states)))
+  choropleth.data(choroplethData)
 
-  /** @function getVal
-   * @param {string} geoid - id = `${statefips}${countyfips}`
-   * @param {string} year - one of ['0405', ..., '1415']
-   * @param {string} direction - 'in'||'out'
-   * @param {string} stat - one of ['n1', 'n2', 'agi']
-   * @returns {?number}
-   * @description Returns either the value for the record with id=geoid or null
-   */
-  function getVal (geoid, year, direction, stat = 'n1') {
-    let val = munge.getDirectionYearValues(nested.CountyData, direction, year)
-      .find(el => el.id === geoid)
-    return val === undefined ? null : val[stat]
-  }
+  pageEls.d3s.choropleth.call(choropleth)
 
-  /* *** tooltip handler functions *** */
-
-  /** @function ttOver
-   * handler for map interaction on mouseover event, attached to county lineshapes
-   */
-  function ttOver (d) {
-    d3.select(this).classed('highlight', true)
-  }
-
-  /** @function ttMove
-   * handler for map interaction on mousemove event, attached to county lineshapes
-   */
-  function ttMove (d) {
-    let year = years[pageEls.nodes.yearSelector.value]
-    let yr = fullYear(year)
-    let direction = pageEls.nodes.directionSelector.value
-    let stat = pageEls.nodes.statisticSelector.value
-    let val = getVal(d.properties.geoid, year, direction, stat)
-    let pop = getVal(d.properties.geoid, year, direction, 'pop')
-    // let n1 = (stat === 'n1') ? val : getVal(d.properties.geoid, year, direction, 'n1')
-    // let newbies = n1 / pop   // should get last year's pop
-    pop = (pop === null) ? 'n/a' : d3.format(',d')(pop)
-    let htmlstring = `<strong>${d.properties.name}, ${d.properties.state}</strong>: <span>${d3.format(',d')(val)}</span><br>Population in ${yr}: ${pop}`
-    // if (newbies !== 0 && pop !== 'n/a') {
-    //   let wording = (direction === 'in')
-    //     ? '% of population now living in SF'
-    //     : '% of population newly moved from SF'
-    //   htmlstring += `<br>${wording}: ${d3.format('.3p')(newbies)}`
-    // }
-    tooltip
-        .style('left', d3.event.pageX - 50 + 'px')
-        .style('top', d3.event.pageY - 100 + 'px')
-        .style('display', 'inline-block')
-        .html(htmlstring)
-  }
-
-  /** @function ttOut
-   * handler for map interaction on mouseout event, attached to county lineshapes
-   */
-  function ttOut (d) {
-    tooltip.style('display', 'none')
-    d3.select(this).classed('highlight', false)
-  }
-
-  /* *** zooming functions *** */
-
-  /** @function clicked
-   * handler function for clicking on county lineshape:
-   * zooms in on county on initial click,
-   * resets zoom when clicked on same county
-   */
-  function clicked (d) {
-    if (active.node() === this) return reset()
-    active.classed('active', false)
-    active = d3.select(this).classed('active', true)
-
-    let width = pageEls.d3s.mapSvg.attr('width')
-    let height = pageEls.d3s.mapSvg.attr('height')
-    let bounds = path.bounds(d)
-    let dx = bounds[1][0] - bounds[0][0]
-    let dy = bounds[1][1] - bounds[0][1]
-    let x = (bounds[0][0] + bounds[1][0]) / 2
-    let y = (bounds[0][1] + bounds[1][1]) / 2
-    let scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height)))
-    let translate = [width / 2 - scale * x, height / 2 - scale * y]
-
-    pageEls.d3s.mapSvg.transition()
-      .duration(750)
-      .call(zoom.transform, d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale))
-  }
-
-  /** @function reset
-   * handler function for resetting zoom, called by clicked()
-   */
-  function reset () {
-    active.classed('active', false)
-    active = d3.select(null)
-    pageEls.d3s.mapSvg.transition()
-        .duration(750)
-        .call(zoom.transform, d3.zoomIdentity) // updated for d3 v4
-  }
-
-  /** @function zoomed
- * handler function for mouse scrollwheel zooming
- */
-  function zoomed () {
-    mapEls.style('stroke-width', 1.5 / d3.event.transform.k + 'px')
-    mapEls.attr('transform', d3.event.transform)
-  }
-
-  /** @function stopped
-   * stops zooming on mouse click
-   */
-  function stopped () {
-    if (d3.event.defaultPrevented) d3.event.stopPropagation()
-  }
   /* *** end map drawing *** */
 
-  /* *** start draw the counties barchart *** */
-  let topCountyData = munge.dataTopNCounties(munge.getDirectionYearValues(nested.CountyData, direction, year), 'n1', fipsMap, 15)
-
-  let topCountyChart = barChart()
-    .margin({left: 70, top: 30, right: 30, bottom: 150})
-    .width(960)
-    .height(400)
-    .xProp('name')
-    .yProp('value')
-    .colorScale(color)
-    .yAxisLabel('Number of Returns')
-  pageEls.d3s.topCountyElement
-    .datum(topCountyData)
-    .call(topCountyChart)
-  /* *** end draw the counties barchart *** */
-
-  let topCountyPopAvgString = calcAvgCountyPop(topCountyData)
-
-  pageEls.d3s.topCountyPopAvgEl.text(topCountyPopAvgString)
-
-  /* *** start draw the out of state counties barchart *** */
-  let topCountyOutOfStateData = munge.dataTopNCounties(munge.getDirectionYearValues(nested.CountyData, direction, year), 'n1', fipsMap, 15, null, true)
-
-  let topCountyOutOfStateChart = barChart()
-    .margin({left: 70, top: 30, right: 30, bottom: 150})
-    .width(960)
-    .height(400)
-    .xProp('name')
-    .yProp('value')
-    .colorScale(color)
-    .yAxisLabel(statFullName.n1)
-  pageEls.d3s.topCountyOutOfStateElement
-    .datum(topCountyOutOfStateData)
-    .call(topCountyOutOfStateChart)
-  /* *** end draw the counties barchart *** */
-
-  let topCountyOutOfStatePopAvgString = calcAvgCountyPop(topCountyOutOfStateData)
-
-  pageEls.d3s.topCountyOutOfStatePopAvgEl.text(topCountyOutOfStatePopAvgString)
-
-  /* *** start draw the states barchart *** */
-  let topStateData = munge.dataTopNStates(munge.getDirectionYearValues(nested.StateData, direction, year), 'n1', fipsMap, 15, '06')
-
-  let topStateChart = barChart()
-    .margin({left: 70, top: 30, right: 30, bottom: 50})
-    .width(960)
-    .height(300)
-    .xProp('name')
-    .yProp('value')
-    .colorScale(color)
-    .yAxisLabel(statFullName.n1)
-  pageEls.d3s.topStateElement
-    .datum(topStateData)
-    .call(topStateChart)
-  /* *** end draw the states barchart *** */
-
-  /* *** start draw the linechart *** */
-  let annualData = munge.getDirectionYearValues(nested.StateDataByYear, direction, '06')
-    .map(function (d) {
-      return {short: d.key, year: munge.fullYear(d.key), value: d.value.n1}
-    })
-    .sort(function (a, b) {
-      return a.short - b.short
-    })
-
-  let annualChart = lineGraph()
-    .margin({left: 70, top: 30, right: 30, bottom: 50})
-    .width(960)
-    .height(400)
-    .xProp('year')
-    .yProp('value')
-    .color(color.range()[5])
-  pageEls.d3s.annualElement
-    .datum(annualData)
-    .call(annualChart)
-  /* *** end draw the linechart *** */
+  // /* *** start draw the counties barchart *** */
+  // let topCountyData = munge.dataTopNCounties(munge.getDirectionYearValues(nested.CountyData, direction, year), 'n1', fipsMap, 15)
+  //
+  // let topCountyChart = barChart()
+  //   .margin({left: 70, top: 30, right: 30, bottom: 150})
+  //   .width(960)
+  //   .height(400)
+  //   .xProp('name')
+  //   .yProp('value')
+  //   .colorScale(color)
+  //   .yAxisLabel('Number of Returns')
+  // pageEls.d3s.topCountyElement
+  //   .datum(topCountyData)
+  //   .call(topCountyChart)
+  // /* *** end draw the counties barchart *** */
+  //
+  // let topCountyPopAvgString = calcAvgCountyPop(topCountyData)
+  //
+  // pageEls.d3s.topCountyPopAvgEl.text(topCountyPopAvgString)
+  //
+  // /* *** start draw the out of state counties barchart *** */
+  // let topCountyOutOfStateData = munge.dataTopNCounties(munge.getDirectionYearValues(nested.CountyData, direction, year), 'n1', fipsMap, 15, null, true)
+  //
+  // let topCountyOutOfStateChart = barChart()
+  //   .margin({left: 70, top: 30, right: 30, bottom: 150})
+  //   .width(960)
+  //   .height(400)
+  //   .xProp('name')
+  //   .yProp('value')
+  //   .colorScale(color)
+  //   .yAxisLabel(statFullName.n1)
+  // pageEls.d3s.topCountyOutOfStateElement
+  //   .datum(topCountyOutOfStateData)
+  //   .call(topCountyOutOfStateChart)
+  // /* *** end draw the counties barchart *** */
+  //
+  // let topCountyOutOfStatePopAvgString = calcAvgCountyPop(topCountyOutOfStateData)
+  //
+  // pageEls.d3s.topCountyOutOfStatePopAvgEl.text(topCountyOutOfStatePopAvgString)
+  //
+  // /* *** start draw the states barchart *** */
+  // let topStateData = munge.dataTopNStates(munge.getDirectionYearValues(nested.StateData, direction, year), 'n1', fipsMap, 15, '06')
+  //
+  // let topStateChart = barChart()
+  //   .margin({left: 70, top: 30, right: 30, bottom: 50})
+  //   .width(960)
+  //   .height(300)
+  //   .xProp('name')
+  //   .yProp('value')
+  //   .colorScale(color)
+  //   .yAxisLabel(statFullName.n1)
+  // pageEls.d3s.topStateElement
+  //   .datum(topStateData)
+  //   .call(topStateChart)
+  // /* *** end draw the states barchart *** */
+  //
+  // /* *** start draw the linechart *** */
+  // let annualData = munge.getDirectionYearValues(nested.StateDataByYear, direction, '06')
+  //   .map(function (d) {
+  //     return {short: d.key, year: munge.fullYear(d.key), value: d.value.n1}
+  //   })
+  //   .sort(function (a, b) {
+  //     return a.short - b.short
+  //   })
+  //
+  // let annualChart = lineGraph()
+  //   .margin({left: 70, top: 30, right: 30, bottom: 50})
+  //   .width(960)
+  //   .height(400)
+  //   .xProp('year')
+  //   .yProp('value')
+  //   .color(color.range()[5])
+  // pageEls.d3s.annualElement
+  //   .datum(annualData)
+  //   .call(annualChart)
+  // /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
 
@@ -457,10 +319,10 @@ function initialDraw (error, migrationData, counties, fips) {
         })
     }
 
-    pageEls.d3s.mapSvg.select('.legendCells').remove() // update doesn't seem to call a color change on the legend
-    legend.scale(color)
-    pageEls.d3s.mapSvg.select('.legendQuant')
-      .call(legend)
+    // pageEls.d3s.mapSvg.select('.legendCells').remove() // update doesn't seem to call a color change on the legend
+    // legend.scale(color)
+    // pageEls.d3s.mapSvg.select('.legendQuant')
+    //   .call(legend)
 
     topCountyChart.colorScale(color).yAxisLabel(statFullName[stat])
     topCountyOutOfStateChart.colorScale(color).yAxisLabel(statFullName[stat])

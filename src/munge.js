@@ -2,6 +2,20 @@
         data munge functions
 *******************************************************************************/
 
+/** @function choroplethData
+ * @param { object[] } data - values array of nestedCountyData from getDirectionYearValues()
+ * @param { string } prop - property to assign to val
+ * @param { string } [key='id'] - property name of data unique key
+ * @returns { object[] }
+ */
+function choroplethData (data, prop, key = 'id') {
+  // turn data into "id, data" k-v pairs
+  let foo = data.map(function (d) {
+    return { id: d[key], val: +d[prop] }
+  })
+  return foo
+}
+
 /** @function dataTopNCounties
  * @param { object[] } data - values array of nestedCountyData from getDirectionYearValues()
  * @param { string } [prop] - property to sort by
@@ -170,6 +184,7 @@ function fullYear (d) {
 }
 
 module.exports = {
+  choroplethData: choroplethData,
   dataTopNCounties: dataTopNCounties,
   dataTopNStates: dataTopNStates,
   targetFips: targetFips,
