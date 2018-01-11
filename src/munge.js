@@ -3,7 +3,7 @@
 *******************************************************************************/
 
 /** @function choroplethData
- * @param { object[] } data - values array of nestedCountyData from getDirectionYearValues()
+ * @param { object[] } data - values array of nestedCountyData from nestedFind()
  * @param { string } prop - property to assign to val
  * @param { string } [key='id'] - property name of data unique key
  * @returns { object[] }
@@ -17,7 +17,7 @@ function choroplethData (data, prop, key = 'id') {
 }
 
 /** @function dataTopNCounties
- * @param { object[] } data - values array of nestedCountyData from getDirectionYearValues()
+ * @param { object[] } data - values array of nestedCountyData from nestedFind()
  * @param { string } [prop] - property to sort by
  * @param { map } [fipsMap] - map of fips to county names
  * @param { number } [n=10] - first n records to return
@@ -71,7 +71,7 @@ function dataTopNCounties (data, prop, fipsMap, n = 10, addProp, onlyOutOfState 
 }
 
 /** @function dataTopNStates
- * @param { object } data - values array of nestedStateData from getDirectionYearValues()
+ * @param { object } data - values array of nestedStateData from nestedFind()
  * @param { string } prop - property of interest
  * @param { map } [fipsMap] - map of fips to county names
  * @param { number } [n=10] - number of data to return
@@ -131,9 +131,13 @@ function targetFips (direction) {
  * @returns {array} array of stat values for the data in that direction & year
  */
 function domainVals (data, direction, year, stat, fipsCounty) {
-  let directionIndex = getNestedIndex(data, direction)
-  let yearIndex = getNestedIndex(data[directionIndex].values, year)
-  return data[directionIndex].values[yearIndex].values.map(d => (d.y1_statefips < 58 && d.id !== fipsCounty && d[stat] !== '-1') ? +d[stat] : null)
+  // TODO: handle error arising from no data for year/direction
+  return nestedFind(data, direction, year)
+    .map((d) => {
+      return (d.y1_statefips < 58 && d.id !== fipsCounty && d[stat] !== '-1')
+        ? +d[stat]
+        : null
+    })
 }
 
 /** @function getNestedIndex
@@ -148,18 +152,19 @@ function getNestedIndex (data, value, key = 'key') {
   })
 }
 
-/** @function getDirectionYearValues
- * @param {object} data - nestedCountyData: [{key: direction, values: [{key:year, values:[returned array]}] }]
- * @param {string} direction - in or out
- * @param {string} year - year to find
- * @returns {array} "values" array
+/** @function nestedFind
+ * @param data - a d3.nest().entries() object
+ * @param keys - the keys to find values for, in nested order
+ * @returns *falsey* if not found, otherwise *value*
  */
-function getDirectionYearValues (data, direction, year) {
-  // TODO: refactor this function to be "getNestedValue()",
-  //  use spread/recursion to find data in nested structure up to N levels deep
-  let directionIndex = getNestedIndex(data, direction)
-  let yearIndex = getNestedIndex(data[directionIndex].values, year)
-  return data[directionIndex].values[yearIndex].values
+function nestedFind (data, ...keys) {
+  let res = data.find(function (el) { return el.key === keys[0] })
+  if (!res) return undefined
+  if (keys.length > 1) {
+    keys.shift()
+    return nestedFind(res.values, ...keys)
+  }
+  return res.value ? res.value : res.values
 }
 
 /** @function inOrOut
@@ -189,7 +194,7 @@ module.exports = {
   dataTopNStates: dataTopNStates,
   targetFips: targetFips,
   domainVals: domainVals,
-  getDirectionYearValues: getDirectionYearValues,
+  nestedFind: nestedFind,
   inOrOut: inOrOut,
   fullYear: fullYear
 }

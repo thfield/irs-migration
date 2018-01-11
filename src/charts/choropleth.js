@@ -162,6 +162,7 @@ export default function choroplethChart () {
           .attr('fill', function (d) {
             return d.properties.val ? color(d.properties.val) : '#fff'
           })
+        topoObject.exit().remove()
       }
 
       basemapDraw = function () {

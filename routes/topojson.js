@@ -47,7 +47,7 @@ router.get('/:fips', function (req, res, next) {
       }
       geojson.properties = newProps
       return geojson
-    })
+    }).filter(function (co) { return co !== undefined })
     shapes = turf.featureCollection(shapes)
     // find center of counties
     let centers = findCentersOfMass(shapes)
