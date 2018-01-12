@@ -49,9 +49,9 @@ Say, Manhattan (FIPS code 36 061):
 
 
 ## TODO
-- https://github.com/sequelize/express-example
-  - http://docs.sequelizejs.com/manual/tutorial/models-definition.html
-  - https://scotch.io/tutorials/getting-started-with-node-express-and-postgres-using-sequelize
+- choose county by map as well as list
+- find county with highest # of feeder counties in a year
+- show # of in state vs out-of-state migrators
 - TODO in `download.sh` having to do with character encoding conversion
 - change color scale to some sort of threshold scale (automatic)
 - connect centroids with lines
@@ -62,7 +62,7 @@ Say, Manhattan (FIPS code 36 061):
 - select county to compare over time
 - combine gif-munge and gif-create into single node script?
 - note: 06075inflowcombined.csv has duplicate rows for cook county IL
-- find county with highest # of feeder counties in a year
+- use circles on map instead of coloring counties
 
 ### Done
 - command line generation of map
@@ -72,7 +72,9 @@ Say, Manhattan (FIPS code 36 061):
 - zoom map
 - line chart of total immigration/emigration year-to-year
 - allow user to choose different year
-- use circles on map instead of coloring counties
+- https://github.com/sequelize/express-example
+- http://docs.sequelizejs.com/manual/tutorial/models-definition.html
+- https://scotch.io/tutorials/getting-started-with-node-express-and-postgres-using-sequelize
 
 
 ## FIPS ref
@@ -152,6 +154,5 @@ curl http://localhost:3000/api/migration/06075?direction="out" >> foo/migration0
 curl http://localhost:3000/api/topojson/06075 > foo/06075topo.json
 
 COPY "Migrations"("fipsIn","fipsOut","y2_statefips","y2_countyfips","y1_statefips","y1_countyfips","n1","n2","agi","year") FROM '/Users/tyler/www/irs-migration/data/pg/alldata.csv' DELIMITER ',' CSV HEADER;
-
 
 COPY "Counties"("fips","state","statefp","countyfp","name","type") FROM '/Users/tyler/www/irs-migration/munge/pg/extrafips.csv' DELIMITER ',' CSV HEADER;

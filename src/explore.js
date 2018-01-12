@@ -24,6 +24,8 @@ import statesTopoJson from './states.topo.json'
 
 let fipsCounty = document.URL.match(/\d{5}$/)[0]
 let fipsState = fipsCounty.slice(0, 2)
+let countyName
+let stateName
 let year = '1415'
 let direction = 'in'
 
@@ -60,7 +62,8 @@ let pageEls = {
     yearReadout: document.querySelector('#year-readout'),
     drawCircles: document.querySelector('#drawCircles'),
     drawShape: document.querySelector('#drawShape'),
-    countyNameEls: document.querySelectorAll('.county-name')
+    countyNameEls: document.querySelectorAll('.county-name'),
+    stateNameEls: document.querySelectorAll('.state-name')
   },
   d3s: {
     stateSelector: d3.select('#stateyear'),
@@ -100,6 +103,8 @@ function initialDraw (error, migrationData, countyTopo, fips) {
     fipsMap.set(row.fips, row)
     fipsMap.set(row.statefp, row.state)
   })
+  countyName = fipsMap.get(fipsCounty).name
+  stateName = fipsMap.get(fipsCounty).state
   let nested = {
     CountyData: nesting.county(migrationData),
     StateData: nesting.state(migrationData),
@@ -120,7 +125,12 @@ function initialDraw (error, migrationData, countyTopo, fips) {
   pageEls.nodes.yearSelector.max = years.length - 1
   pageEls.nodes.yearSelector.value = years.length - 1
   pageEls.nodes.yearReadout.innerHTML = munge.fullYear(years[years.length - 1])
-  pageEls.nodes.countyNameEls.innerHTHML = fipsMap.get(fipsCounty).name
+  pageEls.nodes.countyNameEls.forEach(function (el) {
+    el.innerHTML = countyName
+  })
+  pageEls.nodes.stateNameEls.forEach(function (el) {
+    el.innerHTML = stateName
+  })
 
   /* *** populate state selector *** */
   let states = nested.StateDataByYear[0].values.map(d => d.key).filter(d => d < 58)
