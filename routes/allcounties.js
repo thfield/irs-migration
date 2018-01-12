@@ -9,7 +9,7 @@ router.get('/', function (req, res, next) {
   models.County.findAll({ attributes: ['fips', 'state', 'statefp', 'countyfp', 'name'] })
     .then(function (counties) {
       counties = counties.filter(function (co) {
-        return +co.statefp < 57
+        return +co.statefp < 58
       })
       res.send(counties)
     })

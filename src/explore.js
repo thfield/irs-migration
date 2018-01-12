@@ -20,7 +20,10 @@ import statesTopoJson from './states.topo.json'
 // TODO: use miso for data grouping? http://misoproject.com/dataset/
 //     -re-munge data to contain column 'direction' = in||out
 
+// TODO: display name of county in sidebar
+
 let fipsCounty = document.URL.match(/\d{5}$/)[0]
+let fipsState = fipsCounty.slice(0, 2)
 let year = '1415'
 let direction = 'in'
 
@@ -169,81 +172,81 @@ function initialDraw (error, migrationData, countyTopo, fips) {
   /* *** end map drawing *** */
 
   // /* *** start draw the counties barchart *** */
-  // let topCountyData = munge.dataTopNCounties(munge.nestedFind(nested.CountyData, direction, year), 'n1', fipsMap, 15)
-  //
-  // let topCountyChart = barChart()
-  //   .margin({left: 70, top: 30, right: 30, bottom: 150})
-  //   .width(960)
-  //   .height(400)
-  //   .xProp('name')
-  //   .yProp('value')
-  //   .colorScale(color)
-  //   .yAxisLabel('Number of Returns')
-  // pageEls.d3s.topCountyElement
-  //   .datum(topCountyData)
-  //   .call(topCountyChart)
-  // /* *** end draw the counties barchart *** */
-  //
-  // let topCountyPopAvgString = calcAvgCountyPop(topCountyData)
-  //
-  // pageEls.d3s.topCountyPopAvgEl.text(topCountyPopAvgString)
-  //
-  // /* *** start draw the out of state counties barchart *** */
-  // let topCountyOutOfStateData = munge.dataTopNCounties(munge.nestedFind(nested.CountyData, direction, year), 'n1', fipsMap, 15, null, true)
-  //
-  // let topCountyOutOfStateChart = barChart()
-  //   .margin({left: 70, top: 30, right: 30, bottom: 150})
-  //   .width(960)
-  //   .height(400)
-  //   .xProp('name')
-  //   .yProp('value')
-  //   .colorScale(color)
-  //   .yAxisLabel(statFullName.n1)
-  // pageEls.d3s.topCountyOutOfStateElement
-  //   .datum(topCountyOutOfStateData)
-  //   .call(topCountyOutOfStateChart)
-  // /* *** end draw the counties barchart *** */
-  //
-  // let topCountyOutOfStatePopAvgString = calcAvgCountyPop(topCountyOutOfStateData)
-  //
-  // pageEls.d3s.topCountyOutOfStatePopAvgEl.text(topCountyOutOfStatePopAvgString)
-  //
-  // /* *** start draw the states barchart *** */
-  // let topStateData = munge.dataTopNStates(munge.nestedFind(nested.StateData, direction, year), 'n1', fipsMap, 15, '06')
-  //
-  // let topStateChart = barChart()
-  //   .margin({left: 70, top: 30, right: 30, bottom: 50})
-  //   .width(960)
-  //   .height(300)
-  //   .xProp('name')
-  //   .yProp('value')
-  //   .colorScale(color)
-  //   .yAxisLabel(statFullName.n1)
-  // pageEls.d3s.topStateElement
-  //   .datum(topStateData)
-  //   .call(topStateChart)
-  // /* *** end draw the states barchart *** */
-  //
-  // /* *** start draw the linechart *** */
-  // let annualData = munge.nestedFind(nested.StateDataByYear, direction, '06')
-  //   .map(function (d) {
-  //     return {short: d.key, year: munge.fullYear(d.key), value: d.value.n1}
-  //   })
-  //   .sort(function (a, b) {
-  //     return a.short - b.short
-  //   })
-  //
-  // let annualChart = lineGraph()
-  //   .margin({left: 70, top: 30, right: 30, bottom: 50})
-  //   .width(960)
-  //   .height(400)
-  //   .xProp('year')
-  //   .yProp('value')
-  //   .color(color.range()[5])
-  // pageEls.d3s.annualElement
-  //   .datum(annualData)
-  //   .call(annualChart)
-  // /* *** end draw the linechart *** */
+  let topCountyData = munge.dataTopNCounties(munge.nestedFind(nested.CountyData, direction, year), 'n1', fipsMap, 15, null, false, fipsCounty)
+
+  let topCountyChart = barChart()
+    .margin({left: 70, top: 30, right: 30, bottom: 150})
+    .width(960)
+    .height(400)
+    .xProp('name')
+    .yProp('value')
+    .colorScale(color)
+    .yAxisLabel('Number of Returns')
+  pageEls.d3s.topCountyElement
+    .datum(topCountyData)
+    .call(topCountyChart)
+  /* *** end draw the counties barchart *** */
+
+  let topCountyPopAvgString = calcAvgCountyPop(topCountyData)
+
+  pageEls.d3s.topCountyPopAvgEl.text(topCountyPopAvgString)
+
+  /* *** start draw the out of state counties barchart *** */
+  let topCountyOutOfStateData = munge.dataTopNCounties(munge.nestedFind(nested.CountyData, direction, year), 'n1', fipsMap, 15, null, true, fipsCounty)
+
+  let topCountyOutOfStateChart = barChart()
+    .margin({left: 70, top: 30, right: 30, bottom: 150})
+    .width(960)
+    .height(400)
+    .xProp('name')
+    .yProp('value')
+    .colorScale(color)
+    .yAxisLabel(statFullName.n1)
+  pageEls.d3s.topCountyOutOfStateElement
+    .datum(topCountyOutOfStateData)
+    .call(topCountyOutOfStateChart)
+  /* *** end draw the counties barchart *** */
+
+  let topCountyOutOfStatePopAvgString = calcAvgCountyPop(topCountyOutOfStateData)
+
+  pageEls.d3s.topCountyOutOfStatePopAvgEl.text(topCountyOutOfStatePopAvgString)
+
+  /* *** start draw the states barchart *** */
+  let topStateData = munge.dataTopNStates(munge.nestedFind(nested.StateData, direction, year), 'n1', fipsMap, 15, fipsState)
+
+  let topStateChart = barChart()
+    .margin({left: 70, top: 30, right: 30, bottom: 50})
+    .width(960)
+    .height(300)
+    .xProp('name')
+    .yProp('value')
+    .colorScale(color)
+    .yAxisLabel(statFullName.n1)
+  pageEls.d3s.topStateElement
+    .datum(topStateData)
+    .call(topStateChart)
+  /* *** end draw the states barchart *** */
+
+  /* *** start draw the linechart *** */
+  let annualData = munge.nestedFind(nested.StateDataByYear, direction, fipsState)
+    .map(function (d) {
+      return {short: d.key, year: munge.fullYear(d.key), value: d.value.n1}
+    })
+    .sort(function (a, b) {
+      return a.short - b.short
+    })
+
+  let annualChart = lineGraph()
+    .margin({left: 70, top: 30, right: 30, bottom: 50})
+    .width(960)
+    .height(400)
+    .xProp('year')
+    .yProp('value')
+    .color(color.range()[5])
+  pageEls.d3s.annualElement
+    .datum(annualData)
+    .call(annualChart)
+  /* *** end draw the linechart *** */
 
   /* *** begin page interaction handlers *** */
 

@@ -62,6 +62,7 @@ Say, Manhattan (FIPS code 36 061):
 - select county to compare over time
 - combine gif-munge and gif-create into single node script?
 - note: 06075inflowcombined.csv has duplicate rows for cook county IL
+- find county with highest # of feeder counties in a year
 
 ### Done
 - command line generation of map
@@ -151,3 +152,6 @@ curl http://localhost:3000/api/migration/06075?direction="out" >> foo/migration0
 curl http://localhost:3000/api/topojson/06075 > foo/06075topo.json
 
 COPY "Migrations"("fipsIn","fipsOut","y2_statefips","y2_countyfips","y1_statefips","y1_countyfips","n1","n2","agi","year") FROM '/Users/tyler/www/irs-migration/data/pg/alldata.csv' DELIMITER ',' CSV HEADER;
+
+
+COPY "Counties"("fips","state","statefp","countyfp","name","type") FROM '/Users/tyler/www/irs-migration/munge/pg/extrafips.csv' DELIMITER ',' CSV HEADER;

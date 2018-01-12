@@ -42,7 +42,7 @@ function dataTopNCounties (data, prop, fipsMap, n = 10, addProp, onlyOutOfState 
     })
   }
   let i = 0
-  while (response.length < n) {
+  while (i < data.length && response.length < n) {
     let cond1 = data[i].id !== fipsCounty // not the target county
     let cond2 = data[i].y1_statefips < 58 && data[i].y2_statefips < 58 // not an irs-made-up "state
     let cond3 = true // count out of state counties?

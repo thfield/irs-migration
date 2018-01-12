@@ -37,6 +37,7 @@ router.get('/:fips', function (req, res, next) {
 
   function sendResponse (counties) {
     let shapes = counties.map(function (co) {
+      if (!co.Lineshape) { return }
       let geojson = JSON.parse(co.Lineshape.geojson)
       let newProps = {
         statefp: geojson.properties.STATEFP,
