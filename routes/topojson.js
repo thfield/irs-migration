@@ -1,6 +1,7 @@
 var express = require('express')
 var router = express.Router()
 var models = require('../models')
+var Sequelize = require('sequelize')
 const shared = require('./shared')
 const turf = require('@turf/turf')
 const topojson = require('topojson')
@@ -14,7 +15,9 @@ router.get('/:fips', function (req, res, next) {
   let direction = req.query.direction || 'in'
 
   models.Migration.findAll({
-    where: whichMigrations(direction),
+    where: {
+      [Sequelize.Op.or]: [{fipsIn: req.params.fips}, {fipsOut: req.params.fips}]
+    },
     attributes: ['fipsIn', 'fipsOut']
   })
   .then(getCounties)

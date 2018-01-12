@@ -3,6 +3,11 @@ extends layout
 block content
   h1= title
 
+  //-
+    div#map
+      svg(width="960", height="500")
+      div#tooltip(class='tooltip')
+
   div
     p Jump to state
       ul#links-list

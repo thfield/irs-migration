@@ -6,3 +6,39 @@ body {
 a {
   color: #00B7FF;
 }
+
+.highlight {
+  fill: #ac2ee7;
+  /*stroke: #f00;
+  stroke-width: 2px;*/
+}
+
+#map {
+  border: 2px #787676 solid;
+  width: 960px;
+}
+
+#map svg {
+  fill: none;
+  stroke: #000;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.tooltip {
+  position: absolute;
+  display: none;
+  min-width: 80px;
+  height: auto;
+  background: none repeat scroll 0 0 #ffffff;
+  border: 1px solid #777;
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+}
+
+.line {
+  fill: none;
+  /*stroke: #1d9cda;*/
+  stroke-width: 2;
+  stroke-linejoin: round;
+}

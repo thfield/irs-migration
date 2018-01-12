@@ -145,8 +145,8 @@ function initialDraw (error, migrationData, countyTopo, fips) {
   // let outflow = getTotalReturns('out', year)
   let nCounties = getNumCounties(direction, year)
 
-  pageEls.d3s.destinationCounties.text(nCounties)
-  pageEls.d3s.numberReturns.text(d3.format(',d')(inflow))
+  // pageEls.d3s.destinationCounties.text(nCounties)
+  // pageEls.d3s.numberReturns.text(d3.format(',d')(inflow))
   // pageEls.d3s.netFlow.text(d3.format(',d')(inflow - outflow))
 
   function getTotalReturns (direction, year) {

@@ -50,6 +50,7 @@ Say, Manhattan (FIPS code 36 061):
 
 ## TODO
 - choose county by map as well as list
+- reset map view
 - find county with highest # of feeder counties in a year
 - show # of in state vs out-of-state migrators
 - TODO in `download.sh` having to do with character encoding conversion
