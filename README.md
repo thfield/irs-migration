@@ -149,6 +149,7 @@ To make legend for gifs
 
 ./node_modules/.bin/sequelize seed:create --name
 ./node_modules/.bin/sequelize db:seed:all
+./node_modules/.bin/sequelize db:seed:undo --seed 20171130233852-Lineshape.js
 
 curl http://localhost:3000/api/migration/06075 > foo/migration06075.csv;
 curl http://localhost:3000/api/migration/06075?direction="out" >> foo/migration06075.csv;

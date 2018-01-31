@@ -43,30 +43,30 @@ router.get('/:fips', function (req, res, next) {
       if (!co.Lineshape) { return }
       let geojson = JSON.parse(co.Lineshape.geojson)
       let newProps = {
-        statefp: geojson.properties.STATEFP,
-        countyfp: geojson.properties.COUNTYFP,
-        name: geojson.properties.NAME,
+        statefp: geojson.properties.statefp,
+        countyfp: geojson.properties.countyfp,
+        name: geojson.properties.name,
         state: co.state,
-        geoid: geojson.properties.GEOID
+        geoid: geojson.properties.geoid
       }
       geojson.properties = newProps
       return geojson
     }).filter(function (co) { return co !== undefined })
     shapes = turf.featureCollection(shapes)
     // find center of counties
-    let centers = findCentersOfMass(shapes)
+    // let centers = findCentersOfMass(shapes)
 
     // apply projection
-    shapes = d3.geoProject(shapes, d3.geoAlbersUsa())
-    centers = d3.geoProject(centers, d3.geoAlbersUsa())
-
-    // put centers
-    shapes.features = shapes.features.map(function (co) {
-      co.properties.center = centers.features.find(function (d) {
-        return d.properties.geoid === co.properties.geoid
-      }).geometry.coordinates
-      return co
-    })
+    // shapes = d3.geoProject(shapes, d3.geoAlbersUsa())
+    // centers = d3.geoProject(centers, d3.geoAlbersUsa())
+    //
+    // // put centers
+    // shapes.features = shapes.features.map(function (co) {
+    //   co.properties.center = centers.features.find(function (d) {
+    //     return d.properties.geoid === co.properties.geoid
+    //   }).geometry.coordinates
+    //   return co
+    // })
 
     // transform to topojson format
     let countyTopojson = topojson.topology({counties: shapes}, '1e6')

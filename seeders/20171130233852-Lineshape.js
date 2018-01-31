@@ -2,16 +2,6 @@
 const fs = require('fs')
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    /*
-      Add altering commands here.
-      Return a promise to correctly handle asynchronicity.
-
-      Example:
-      return queryInterface.bulkInsert('Person', [{
-        name: 'John Doe',
-        isBetaMember: false
-      }], {});
-    */
     // just seed data
     // let lineshapeSeedData = JSON.parse(fs.readFileSync('../data/pg/seed-lineshapes.json', 'utf8'))
     // lineshapeSeedData = lineshapeSeedData.map(d => {
@@ -20,12 +10,13 @@ module.exports = {
     //   return d
     // })
     // return queryInterface.bulkInsert('Lineshapes', lineshapeSeedData, {})
-
+    // console.log(`Current directory: ${process.cwd()}`);
     // all the data
-    let lineshapeData = JSON.parse(fs.readFileSync('../data/geo/counties.geojson', 'utf8')).features
+    let lineshapeData = JSON.parse(fs.readFileSync('data/geo/counties.geojson', 'utf8')).features
     lineshapeData = lineshapeData.map(d => {
       let r = {}
-      r.fips = d.properties.GEOID
+      r.fips = d.properties.geoid
+      r.statefp = d.properties.statefp
       r.geojson = JSON.stringify(d)
       return r
     })
@@ -33,13 +24,6 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-    /*
-      Add reverting commands here.
-      Return a promise to correctly handle asynchronicity.
-
-      Example:
-      return queryInterface.bulkDelete('Person', null, {});
-    */
     return queryInterface.bulkDelete('Lineshapes', null, {})
   }
 }

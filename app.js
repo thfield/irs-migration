@@ -12,6 +12,7 @@ var lineshape = require('./routes/lineshape')
 var topojson = require('./routes/topojson')
 var migration = require('./routes/migration')
 var explore = require('./routes/explore')
+var state = require('./routes/state')
 var baz = require('./routes/baz')
 
 var app = express()
@@ -35,6 +36,7 @@ app.use('/api/lineshape', lineshape)
 app.use('/api/topojson', topojson)
 app.use('/api/migration', migration)
 app.use('/explore', explore)
+app.use('/api/state', state)
 app.use('/baz', baz)
 
 // catch 404 and forward to error handler

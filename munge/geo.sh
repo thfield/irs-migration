@@ -25,16 +25,17 @@ mkdir -p geo
 
 
 # ##### county shapefiles #####
+# use geo-counties.sh for county geojson creation
 
-# download from census bureau and unzip
-if [ ! -f raw-geo/cb_2015_us_county_5m.shp ]; then
-  curl -o raw-geo/cb_2015_us_county_5m.zip 'https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_5m.zip'
-  unzip raw-geo/cb_2015_us_county_5m.zip -d raw-geo
-fi
-
-# convert to geojson
-shp2json raw-geo/cb_2015_us_county_5m.shp -o geo/counties.geojson
-# county geo->topo conversion done in parse-county.js
+# # download from census bureau and unzip
+# if [ ! -f raw-geo/cb_2015_us_county_5m.shp ]; then
+#   curl -o raw-geo/cb_2015_us_county_5m.zip 'https://www2.census.gov/geo/tiger/GENZ2015/shp/cb_2015_us_county_5m.zip'
+#   unzip raw-geo/cb_2015_us_county_5m.zip -d raw-geo
+# fi
+#
+# # convert to geojson
+# shp2json raw-geo/cb_2015_us_county_5m.shp -o geo/counties.geojson
+# # county geo->topo conversion done in parse-county.js
 
 # geo2topo features=geo/counties.geojson > ../public/counties.topojson
 
